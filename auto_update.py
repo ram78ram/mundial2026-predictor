@@ -117,13 +117,10 @@ def get_live_results() -> dict[tuple, tuple | None]:
 def patch_fixture(dry_run: bool = False) -> list[str]:
     """
     Lee fixture.py, aplica los resultados reales y lo reescribe.
-    Solo aplica resultados de partidos de DÍAS ANTERIORES (no hoy).
+    Devuelve lista de cambios realizados.
+    Pasa dry_run=True para solo ver qué cambiaría sin escribir.
     """
-    from datetime import date
-    today = date.today().isoformat()
     live = get_live_results()
-    # Filtrar solo partidos de días anteriores
-    live = {k: v for k, v in live.items() if v is not None}
     fixture_path = Path(__file__).parent / "fixture.py"
     content = fixture_path.read_text()
     changes = []
@@ -153,10 +150,7 @@ def patch_fixture(dry_run: bool = False) -> list[str]:
             pat = rf'"local":\s*"{re.escape(local)}",\s*"visitante":\s*"{re.escape(visitante)}"[^}}]+?"resultado":\s*None'
             match = re.search(pat, content)
             if match:
-                # Solo aplicar si la fecha del partido es anterior a hoy
-                fecha_match = re.search(r'"fecha": "(\d{4}-\d{2}-\d{2})"', old_block := match.group(0))
-                if fecha_match and fecha_match.group(1) >= today:
-                    continue  # No aplicar resultados de partidos de hoy o futuros
+                old_block = match.group(0)
                 new_block = old_block.replace('"resultado": None', f'"resultado": {score}')
                 changes.append(f"  {local} {score[0]}-{score[1]} {visitante}")
                 if not dry_run:

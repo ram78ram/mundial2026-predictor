@@ -30,10 +30,10 @@ FIXTURE = [
     {"fecha": "2026-06-14", "grupo": "E", "local": "Ecuador",      "visitante": "Costa Marfil","sede": "Kansas City",       "resultado": (1, 2)},
     # Grupo F
     {"fecha": "2026-06-14", "grupo": "F", "local": "Holanda",      "visitante": "Japón",       "sede": "Houston",           "resultado": (2, 1)},
-    {"fecha": "2026-06-15", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": (1, 1)},
     # Grupo G
-    {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica",      "visitante": "Egipto",      "sede": "Miami",             "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "G", "local": "Colombia",     "visitante": "Arabia S.",   "sede": "Dallas",            "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica",      "visitante": "Egipto",      "sede": "Miami",             "resultado": (3, 0)},
+    {"fecha": "2026-06-15", "grupo": "G", "local": "Colombia",     "visitante": "Arabia S.",   "sede": "Dallas",            "resultado": (2, 1)},
     # Grupo H
     {"fecha": "2026-06-15", "grupo": "H", "local": "España",       "visitante": "Cabo Verde",  "sede": "Atlanta",           "resultado": None},
     {"fecha": "2026-06-15", "grupo": "H", "local": "Camerún",      "visitante": "Dinamarca",   "sede": "NRG Houston",       "resultado": None},

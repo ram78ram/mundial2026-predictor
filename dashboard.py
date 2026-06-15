@@ -98,7 +98,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    vista = st.radio("Vista", ["Fixture", "Analizador de partido", "Monte Carlo", "Alertas EV+", "Bankroll"], label_visibility="collapsed")
+    vista = st.radio("Vista", ["Fixture", "Analizador de partido", "Monte Carlo", "Alertas EV+", "Sharp Money", "Bankroll"], label_visibility="collapsed")
 
     if vista == "Analizador de partido":
         st.markdown("### Equipos")
@@ -320,7 +320,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     with c5: st.markdown(f'<div class="metric-card"><div class="metric-lbl">BTTS sí</div><div class="metric-val">{mk["btts"]["si"]}%</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    col_l, col_m = st.columns([1.2,1.2])
+    col_l, col_m, col_r = st.columns([1.2,1.2,1.6])
 
     with col_l:
         st.markdown("#### 1X2")
@@ -346,7 +346,26 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig2, use_container_width=True)
 
-
+    with col_r:
+        st.markdown("#### Valor esperado")
+        if ev:
+            ev_df = pd.DataFrame([
+                {"Mercado": k.upper().replace("_"," "), "EV": v["ev_$"], "Señal": v["señal"]}
+                for k,v in ev.items()
+            ]).sort_values("EV", ascending=True)
+            colors = ["#198754" if x>0 else "#dc3545" for x in ev_df["EV"]]
+            fig3 = go.Figure(go.Bar(
+                x=ev_df["EV"], y=ev_df["Mercado"], orientation="h",
+                marker_color=colors,
+                text=[f"${v:+.2f}" for v in ev_df["EV"]], textposition="outside",
+            ))
+            fig3.add_vline(x=0, line_width=1, line_color="gray")
+            fig3.update_layout(margin=dict(t=10,b=10,l=0,r=40), height=240,
+                               xaxis=dict(showgrid=False,showticklabels=False),
+                               paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+            st.plotly_chart(fig3, use_container_width=True)
+        else:
+            st.info("Agrega momios para ver EV.")
 
     st.markdown("---")
 
@@ -418,10 +437,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         av = rep_full["away_visit_trends"]
 
         # ── Sugerencias del partido
-        # Agregar nombre del equipo a cada sugerencia
-        home_sugg = [dict(s, desc=f"🏠 {home}: " + s["desc"]) for s in rep_full["home_suggestions"][:3]]
-        away_sugg = [dict(s, desc=f"✈️ {away}: " + s["desc"]) for s in rep_full["away_suggestions"][:3]]
-        all_sugg = rep_full["match_suggestions"] + home_sugg + away_sugg
+        all_sugg = rep_full["match_suggestions"] +                    rep_full["home_suggestions"][:3] +                    rep_full["away_suggestions"][:3]
 
         if all_sugg:
             st.markdown("#### 💡 Sugerencias automáticas")
@@ -442,45 +458,48 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         st.markdown("#### 📊 Comparativa de tendencias (últimos 10 partidos)")
         col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
 
-        # Tabla comparativa alineada con HTML puro
-        import pandas as _pd3
+        def _trend_row(label, h_val, a_val, suffix="%"):
+            h_color = "#198754" if h_val >= a_val else "#dc3545"
+            a_color = "#198754" if a_val >= h_val else "#dc3545"
+            with col_t1:
+                st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+            with col_t2:
+                st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
+                           unsafe_allow_html=True)
+            with col_t3:
+                st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+
+        with col_t1: st.markdown(f'<div style="text-align:right;font-weight:700;padding:4px 0">{home}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:11px">vs</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-weight:700;padding:4px 0">{away}</div>', unsafe_allow_html=True)
+
+        _trend_row("Victorias", ht.get("win_%",0), at.get("win_%",0))
+        _trend_row("Over 2.5", ht.get("over_2.5_%",0), at.get("over_2.5_%",0))
+        _trend_row("Over 1.5", ht.get("over_1.5_%",0), at.get("over_1.5_%",0))
+        _trend_row("BTTS Sí", ht.get("btts_%",0), at.get("btts_%",0))
+        _trend_row("Clean Sheet", ht.get("cs_%",0), at.get("cs_%",0))
+        _trend_row("Siempre marca", ht.get("scored_%",0), at.get("scored_%",0))
+        _trend_row("Prom. GF", ht.get("avg_gf",0), at.get("avg_gf",0), "")
+        _trend_row("Prom. GC", ht.get("avg_gc",0), at.get("avg_gc",0), "")
+        _trend_row("Prom. total", ht.get("avg_total",0), at.get("avg_total",0), "")
+
+        # Racha actual
         mapa_r = {"V":"victorias","E":"empates","D":"derrotas"}
+        h_racha = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
+        a_racha = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0;font-weight:600">{h_racha}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Racha actual</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0;font-weight:600">{a_racha}</div>', unsafe_allow_html=True)
 
-        rows_cmp = [
-            ("Victorias %",     f"{ht.get('win_%',0)}%",      f"{at.get('win_%',0)}%"),
-            ("Over 2.5 %",      f"{ht.get('over_2.5_%',0)}%", f"{at.get('over_2.5_%',0)}%"),
-            ("Over 1.5 %",      f"{ht.get('over_1.5_%',0)}%", f"{at.get('over_1.5_%',0)}%"),
-            ("BTTS Sí %",       f"{ht.get('btts_%',0)}%",     f"{at.get('btts_%',0)}%"),
-            ("Clean Sheet %",   f"{ht.get('cs_%',0)}%",       f"{at.get('cs_%',0)}%"),
-            ("Siempre marca %", f"{ht.get('scored_%',0)}%",   f"{at.get('scored_%',0)}%"),
-            ("Prom. GF",        str(ht.get('avg_gf',0)),      str(at.get('avg_gf',0))),
-            ("Prom. GC",        str(ht.get('avg_gc',0)),      str(at.get('avg_gc',0))),
-            ("Prom. total/partido", str(ht.get('avg_total',0)), str(at.get('avg_total',0))),
-            ("Racha actual",
-             f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}",
-             f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"),
-            ("Partidos sin perder",
-             str(ht.get('sin_perder',0)),
-             str(at.get('sin_perder',0))),
-        ]
-
-        df_cmp = _pd3.DataFrame(rows_cmp, columns=[home, "Estadística", away])
-
-        def _hl_row(row):
-            styles = ["", "", ""]
-            try:
-                h = float(str(row[home]).replace("%",""))
-                a = float(str(row[away]).replace("%",""))
-                styles[0] = "color:#198754;font-weight:700" if h >= a else "color:#dc3545"
-                styles[2] = "color:#198754;font-weight:700" if a >= h else "color:#dc3545"
-            except: pass
-            return styles
-
-        st.dataframe(
-            df_cmp.style.apply(_hl_row, axis=1),
-            use_container_width=True,
-            hide_index=True,
-        )
+        h_invicto = f"{ht.get('sin_perder',0)} sin perder"
+        a_invicto = f"{at.get('sin_perder',0)} sin perder"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0">{h_invicto}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Invicto</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0">{a_invicto}</div>', unsafe_allow_html=True)
 
     except Exception as e:
         st.caption(f"Tendencias no disponibles: {e}")
@@ -809,6 +828,137 @@ elif vista == "Alertas EV+" and not st.session_state.get("vista_override"):
         else:
             st.info(f"Sin oportunidades con EV≥${umbral_ev} y edge≥{umbral_edge}% ahora mismo.")
 
+
+
+# ═════════════════════════════════════════════════════════════
+#  SHARP MONEY — MOVIMIENTO DE LÍNEAS PINNACLE
+# ═════════════════════════════════════════════════════════════
+elif vista == "Sharp Money" and not st.session_state.get("vista_override"):
+    from sharp_money import sync_and_analyze, get_movement, init_db
+    init_db()
+
+    st.markdown("# 💰 Sharp Money — Movimiento de líneas")
+    st.caption("Rastreamos los momios de **Pinnacle** — la casa de referencia de los apostadores profesionales. "
+               "Cuando el momio baja con poco volumen público → hay dinero sharp entrando.")
+
+    col_k, col_r = st.columns([2,1])
+    with col_k:
+        odds_key = st.text_input("Odds API Key", value="f53632176b081239f863d6b9be2ebe1b",
+                                  type="password", key="sharp_key")
+    with col_r:
+        st.markdown("<br>", unsafe_allow_html=True)
+        refresh = st.button("🔄 Actualizar líneas Pinnacle", type="primary")
+
+    if refresh or "sharp_data" not in st.session_state:
+        if odds_key:
+            with st.spinner("Descargando líneas de Pinnacle..."):
+                try:
+                    data = sync_and_analyze(odds_key)
+                    st.session_state["sharp_data"] = data
+                    st.success(f"✓ {len(data)} partidos actualizados")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+                    data = []
+        else:
+            data = []
+    else:
+        data = st.session_state.get("sharp_data", [])
+
+    if data:
+        st.markdown("---")
+
+        # ── Señales sharp detectadas
+        sharps = [p for p in data if p.get("señal_sharp","").startswith("💰")]
+        estables = [p for p in data if p.get("señal_sharp","").startswith("➡️")]
+        publico = [p for p in data if p.get("señal_sharp","").startswith("👥")]
+
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Partidos monitoreados", len(data))
+        c2.metric("🔴 Señales sharp", len(sharps))
+        c3.metric("👥 Movimiento público", len(publico))
+        c4.metric("➡️ Sin movimiento", len(estables))
+
+        st.markdown("---")
+
+        # ── Tabla de momios actuales con señales
+        st.markdown("### Momios Pinnacle actuales")
+        st.caption("Pinnacle es la casa que menos margen tiene y donde apuestan los profesionales. "
+                   "Sus líneas son el estándar de referencia del mercado.")
+
+        rows_sharp = []
+        for p in sorted(data, key=lambda x: x.get("odd_h", 99)):
+            movs = p.get("movimientos", [])
+            mov_str = " | ".join([m["señal"] for m in movs]) if movs else "Sin cambios"
+            señal = p.get("señal_sharp", "—")
+
+            rows_sharp.append({
+                "Partido":     p["partido"],
+                "Local (H)":   f"{p.get('odd_h','—')}",
+                "Empate (D)":  f"{p.get('odd_d','—')}",
+                "Visitante (A)": f"{p.get('odd_a','—')}",
+                "Movimiento":  mov_str,
+                "Señal":       señal,
+            })
+
+        df_sharp = pd.DataFrame(rows_sharp)
+
+        def _color_senal(val):
+            if "💰" in str(val): return "background:#d1e7dd;color:#0f5132;font-weight:700"
+            if "👥" in str(val): return "background:#fff3cd;color:#664d03"
+            return ""
+
+        st.dataframe(
+            df_sharp.style.map(_color_senal, subset=["Señal"]),
+            use_container_width=True, hide_index=True, height=400
+        )
+
+        # ── Detalle de señales sharp
+        if sharps:
+            st.markdown("---")
+            st.markdown("### 🔴 Partidos con dinero sharp detectado")
+            for p in sharps:
+                with st.expander(f"**{p['partido']}** — {p['señal_sharp']}"):
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Momio local", p.get("odd_h","—"))
+                    c2.metric("Momio empate", p.get("odd_d","—"))
+                    c3.metric("Momio visitante", p.get("odd_a","—"))
+
+                    if p.get("movimientos"):
+                        for m in p["movimientos"]:
+                            color = "#d1e7dd" if "Sharp" in m["señal"] else "#fff3cd"
+                            txt = "#0f5132" if "Sharp" in m["señal"] else "#664d03"
+                            st.markdown(
+                                f'<div style="background:{color};color:{txt};padding:8px 14px;'
+                                f'border-radius:8px;margin:4px 0;font-size:14px">'
+                                f'{m["señal"]} — Momio {m["mercado"]} {m["direccion"]} '
+                                f'{abs(m["cambio"]):.3f} puntos</div>',
+                                unsafe_allow_html=True
+                            )
+                    if p.get("snapshots", 0) < 2:
+                        st.info("Necesita al menos 2 snapshots para detectar movimiento. "
+                               "Actualiza las líneas en 30-60 min.")
+
+        # ── Explicación
+        st.markdown("---")
+        with st.expander("ℹ️ ¿Cómo interpretar el movimiento de líneas?"):
+            st.markdown("""
+            **Momio baja** → más dinero entrando en ese resultado → si es con poco volumen público, son sharps
+
+            **Momio sube** → la casa está recibiendo poco dinero en ese lado → pueden ser sharps al contrario
+
+            **Señales clave:**
+            - 🔴 **Sharp**: momio bajó significativamente sin que el público lo justifique
+            - 👥 **Público**: momio sube porque el público apuesta al contrario
+            - ➡️ **Estable**: sin movimiento significativo
+
+            **Pinnacle como referencia:**
+            Pinnacle acepta apuestas grandes y no limita a los ganadores. Sus líneas se consideran
+            el precio "justo" del mercado. Si Pinnacle mueve una línea, hay una razón.
+
+            **Estrategia sharp:**
+            Busca partidos donde Pinnacle tenga un momio significativamente mayor que Playdoit
+            en el mismo resultado → ahí está el valor.
+            """)
 
 # ═════════════════════════════════════════════════════════════
 #  BANKROLL TRACKER
