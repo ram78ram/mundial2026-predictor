@@ -424,12 +424,36 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                 visitas  = [m for m in get_team_matches(equipo, 30) if m["condicion"]=="Visitante"][:5]
 
                 def _rows(lst):
-                    return [{"Año": m["año"], "Rival": m["rival"],
-                             "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
-                             "Marcador": m["marcador"],
-                             "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
-                             "Goleadores": m["goleadores"][:38] if m["goleadores"]!="—" else "—"}
-                            for m in lst]
+                    if not lst: return []
+                    gf_total = sum(m["gf"] for m in lst)
+                    gc_total = sum(m["gc"] for m in lst)
+                    n = len(lst)
+                    rows = []
+                    acum_gf, acum_gc = 0, 0
+                    for m in lst:
+                        acum_gf += m["gf"]
+                        acum_gc += m["gc"]
+                        idx = lst.index(m) + 1
+                        rows.append({
+                            "Año":      m["año"],
+                            "Rival":    m["rival"],
+                            "Cond.":    "🏠" if m["condicion"]=="Local" else "✈️",
+                            "Marcador": m["marcador"],
+                            "GF":       m["gf"],
+                            "GC":       m["gc"],
+                            "Res.":     ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                            "Goleadores": m["goleadores"][:35] if m["goleadores"]!="—" else "—",
+                        })
+                    # Fila de promedio al final
+                    rows.append({
+                        "Año": "—", "Rival": f"PROMEDIO ({n} partidos)", "Cond.": "📊",
+                        "Marcador": f"{round(gf_total/n,2)}-{round(gc_total/n,2)}",
+                        "GF": round(gf_total/n, 2),
+                        "GC": round(gc_total/n, 2),
+                        "Res.": f"Total/partido: {round((gf_total+gc_total)/n,2)}",
+                        "Goleadores": f"GF: {gf_total}  GC: {gc_total}",
+                    })
+                    return rows
 
                 def _stats_row(lst):
                     s = compute_stats(lst)
