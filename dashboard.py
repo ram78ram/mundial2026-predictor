@@ -437,7 +437,9 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         av = rep_full["away_visit_trends"]
 
         # ── Sugerencias del partido
-        all_sugg = rep_full["match_suggestions"] +                    rep_full["home_suggestions"][:3] +                    rep_full["away_suggestions"][:3]
+        home_sugg = [dict(s, desc=f"🏠 " + home + ": " + s["desc"]) for s in rep_full["home_suggestions"][:3]]
+        away_sugg = [dict(s, desc=f"✈️ " + away + ": " + s["desc"]) for s in rep_full["away_suggestions"][:3]]
+        all_sugg = rep_full["match_suggestions"] + home_sugg + away_sugg
 
         if all_sugg:
             st.markdown("#### 💡 Sugerencias automáticas")
