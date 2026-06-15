@@ -151,6 +151,8 @@ TEAM_MAP = {
     "Túnez":        "Túnez",
     "Uzbekistán":   "Uzbekistán",
     "Argelia":      "Argelia",
+    "Irán":          "Irán",
+    "Nueva Zelanda": "Nueva Zelanda",
 }
 
 TODAY = date.today()
