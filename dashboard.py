@@ -264,29 +264,32 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         return "✅ EV+" if (pm/100*o-1)>0 else "❌ EV-"
     def _ec(pm,o): return f"{round(pm-_imp(o),1):+.1f}%" if o>1 else "—"
     rows_m=[
-        (f"🏠 {home}",mk["1x2"]["local"],momios.get("local",0)),
-        ("🤝 Empate",mk["1x2"]["empate"],momios.get("empate",0)),
-        (f"✈️ {away}",mk["1x2"]["visitante"],momios.get("visitante",0)),
-        ("⚽ Over 2.5",mk["over_under"]["over_2.5"],momios.get("over_2.5",0)),
-        ("⚽ Under 2.5",mk["over_under"]["under_2.5"],momios.get("under_2.5",0)),
-        ("🎯 BTTS Sí",mk["btts"]["si"],momios.get("btts_si",0)),
-        ("🎯 BTTS No",mk["btts"]["no"],momios.get("btts_no",0)),
+        (f"🏠 {home} gana",      mk["1x2"]["local"]),
+        ("🤝 Empate",             mk["1x2"]["empate"]),
+        (f"✈️ {away} gana",      mk["1x2"]["visitante"]),
+        ("⚽ Over 2.5 goles",     mk["over_under"]["over_2.5"]),
+        ("⚽ Under 2.5 goles",    mk["over_under"]["under_2.5"]),
+        ("⚽ Over 1.5 goles",     mk["over_under"]["over_1.5"]),
+        ("⚽ Under 1.5 goles",    mk["over_under"]["under_1.5"]),
+        ("🎯 Ambos anotan Sí",    mk["btts"]["si"]),
+        ("🎯 Ambos anotan No",    mk["btts"]["no"]),
+        (f"🔵 {home} o Empate",   mk["doble_chance"]["1X"]),
+        (f"🔴 {away} o Empate",   mk["doble_chance"]["X2"]),
+        (f"⚡ {home} o {away}",   mk["doble_chance"]["12"]),
     ]
-    df_m=_pd.DataFrame([{"Mercado":n,"P.Modelo":f"{p}%","Momio":f"{o:.2f}" if o>1 else "—","P.Implícita":f"{_imp(o)}%" if o>1 else "—","Edge":_ec(p,o),"Señal":_etag(p,o)} for n,p,o in rows_m])
-    def _cs(v):
+    def _fair(p): return round(100/p, 2) if p > 0 else 0
+    def _color_prob(v):
         try:
-            val=float(v.replace("%","").replace("+",""))
-            if val>2: return "background:#d1e7dd;color:#0f5132;font-weight:700"
-            if val<-2: return "background:#f8d7da;color:#842029"
+            val = float(v.replace("%",""))
+            if val >= 60: return "background:#d1e7dd;color:#0f5132;font-weight:700"
+            if val >= 40: return "background:#fff3cd;color:#664d03;font-weight:600"
         except: pass
         return ""
-    def _css(v):
-        if "EV+" in str(v): return "background:#d1e7dd;color:#0f5132;font-weight:700"
-        if "EV-" in str(v): return "background:#f8d7da;color:#842029"
-        return ""
+    df_m = _pd.DataFrame([{"Mercado": n, "P. Modelo": f"{p}%", "Momio mínimo Playdoit": f"{_fair(p)}", "Señal": "🟢 Si dan MÁS → valor"} for n, p in rows_m])
     st.markdown("---")
-    st.markdown("#### Momios vs Probabilidades del modelo")
-    st.dataframe(df_m.style.map(_cs,subset=["Edge"]).map(_css,subset=["Señal"]),use_container_width=True,hide_index=True)
+    st.markdown("#### Probabilidades del modelo")
+    st.caption("Si el momio de Playdoit es **mayor** al Momio mínimo → hay valor (EV+).")
+    st.dataframe(df_m.style.map(_color_prob, subset=["P. Modelo"]), use_container_width=True, hide_index=True)
     st.markdown("---")
 
     # Métricas 1X2
