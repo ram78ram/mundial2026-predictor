@@ -10,85 +10,96 @@ from datetime import date
 
 # ── Resultado real: None = por jugar, (h, a) = marcador final
 FIXTURE = [
-    # ═══════════════════════════════════════════
-    # FASE DE GRUPOS — Jornada 1
-    # ═══════════════════════════════════════════
-    # Grupo A
-    {"fecha": "2026-06-11", "grupo": "A", "local": "México",       "visitante": "Sudáfrica",   "sede": "Ciudad de México",  "resultado": (2, 0)},
-    {"fecha": "2026-06-11", "grupo": "A", "local": "Corea",        "visitante": "Rep. Checa",  "sede": "Guadalajara",       "resultado": (2, 1)},
-    # Grupo B
-    {"fecha": "2026-06-12", "grupo": "B", "local": "Canadá",       "visitante": "Bosnia",      "sede": "Toronto",           "resultado": (1, 1)},
-    {"fecha": "2026-06-14", "grupo": "B", "local": "Qatar",        "visitante": "Suiza",       "sede": "San Francisco",     "resultado": (0, 3)},
-    # Grupo C
-    {"fecha": "2026-06-13", "grupo": "C", "local": "Brasil",       "visitante": "Marruecos",   "sede": "Nueva Jersey",      "resultado": (1, 1)},
-    {"fecha": "2026-06-13", "grupo": "C", "local": "Haití",        "visitante": "Escocia",     "sede": "Boston",            "resultado": (0, 1)},
-    # Grupo D
-    {"fecha": "2026-06-12", "grupo": "D", "local": "EEUU",         "visitante": "Paraguay",    "sede": "Los Ángeles",       "resultado": (4, 1)},
-    {"fecha": "2026-06-14", "grupo": "D", "local": "Australia",    "visitante": "Turquía",     "sede": "Seattle",           "resultado": (2, 0)},
-    # Grupo E
-    {"fecha": "2026-06-14", "grupo": "E", "local": "Alemania",     "visitante": "Curazao",     "sede": "Toronto",           "resultado": (5, 0)},
-    {"fecha": "2026-06-14", "grupo": "E", "local": "Ecuador",      "visitante": "Costa Marfil","sede": "Kansas City",       "resultado": (1, 2)},
-    # Grupo F
-    {"fecha": "2026-06-14", "grupo": "F", "local": "Holanda",      "visitante": "Japón",       "sede": "Houston",           "resultado": (2, 1)},
-    {"fecha": "2026-06-14", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": None},
-    # Grupo G
-    {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica",      "visitante": "Egipto",      "sede": "Miami",             "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "G", "local": "Colombia",     "visitante": "Arabia S.",   "sede": "Dallas",            "resultado": None},
-    # Grupo H
-    {"fecha": "2026-06-15", "grupo": "H", "local": "España",       "visitante": "Cabo Verde",  "sede": "Atlanta",           "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "H", "local": "Arabia S.",    "visitante": "Uruguay",     "sede": "Miami",             "resultado": None},
-    {"fecha": "2026-06-16", "grupo": "H", "local": "Camerún",      "visitante": "Dinamarca",   "sede": "NRG Houston",       "resultado": None},
-    # Grupo I
-    {"fecha": "2026-06-16", "grupo": "I", "local": "Francia",      "visitante": "Senegal",     "sede": "San Francisco",     "resultado": None},
-    {"fecha": "2026-06-16", "grupo": "I", "local": "Noruega",      "visitante": "Irak",        "sede": "Minneapolis",       "resultado": None},
-    # Grupo J
-    {"fecha": "2026-06-16", "grupo": "J", "local": "Argentina",    "visitante": "Argelia",     "sede": "Dallas",            "resultado": None},
-    {"fecha": "2026-06-16", "grupo": "J", "local": "Austria",      "visitante": "Jordania",    "sede": "Miami",             "resultado": None},
-    # Grupo K
-    {"fecha": "2026-06-17", "grupo": "K", "local": "Portugal",     "visitante": "RD Congo",    "sede": "Kansas City",       "resultado": None},
-    {"fecha": "2026-06-17", "grupo": "K", "local": "Colombia",     "visitante": "Uzbekistán",  "sede": "Atlanta",           "resultado": None},
-    # Grupo L
-    {"fecha": "2026-06-17", "grupo": "L", "local": "Inglaterra",   "visitante": "Croacia",     "sede": "NRG Houston",       "resultado": None},
-    {"fecha": "2026-06-18", "grupo": "L", "local": "Panamá",       "visitante": "Ghana",       "sede": "Los Ángeles",       "resultado": None},
-
-    # ═══════════════════════════════════════════
-    # FASE DE GRUPOS — Jornada 2
-    # ═══════════════════════════════════════════
-    # Grupo A
-    {"fecha": "2026-06-19", "grupo": "A", "local": "México",       "visitante": "Corea",       "sede": "Guadalajara",       "resultado": None},
-    {"fecha": "2026-06-19", "grupo": "A", "local": "Sudáfrica",    "visitante": "Rep. Checa",  "sede": "Atlanta",           "resultado": None},
-    # Grupo C
-    {"fecha": "2026-06-20", "grupo": "C", "local": "Brasil",       "visitante": "Haití",       "sede": "Filadelfia",        "resultado": None},
-    {"fecha": "2026-06-20", "grupo": "C", "local": "Escocia",      "visitante": "Marruecos",   "sede": "Boston",            "resultado": None},
-    # Grupo J
-    {"fecha": "2026-06-22", "grupo": "J", "local": "Argentina",    "visitante": "Austria",     "sede": "Dallas",            "resultado": None},
-    {"fecha": "2026-06-22", "grupo": "J", "local": "Argelia",      "visitante": "Jordania",    "sede": "Miami",             "resultado": None},
-    # Grupo I
-    {"fecha": "2026-06-23", "grupo": "I", "local": "Francia",      "visitante": "Noruega",     "sede": "San Francisco",     "resultado": None},
-    {"fecha": "2026-06-23", "grupo": "I", "local": "Senegal",      "visitante": "Irak",        "sede": "Minneapolis",       "resultado": None},
-    # Grupo L
-    {"fecha": "2026-06-24", "grupo": "L", "local": "Inglaterra",   "visitante": "Panamá",      "sede": "NRG Houston",       "resultado": None},
-    {"fecha": "2026-06-24", "grupo": "L", "local": "Croacia",      "visitante": "Ghana",       "sede": "Los Ángeles",       "resultado": None},
-    # Grupo K
-    {"fecha": "2026-06-25", "grupo": "K", "local": "Portugal",     "visitante": "Colombia",    "sede": "Kansas City",       "resultado": None},
-    {"fecha": "2026-06-25", "grupo": "K", "local": "RD Congo",     "visitante": "Uzbekistán",  "sede": "Atlanta",           "resultado": None},
-
-    # ═══════════════════════════════════════════
-    # FASE DE GRUPOS — Jornada 3
-    # ═══════════════════════════════════════════
-    {"fecha": "2026-06-26", "grupo": "A", "local": "México",       "visitante": "Rep. Checa",  "sede": "Ciudad de México",  "resultado": None},
-    {"fecha": "2026-06-26", "grupo": "A", "local": "Sudáfrica",    "visitante": "Corea",       "sede": "Guadalajara",       "resultado": None},
-    {"fecha": "2026-06-27", "grupo": "C", "local": "Brasil",       "visitante": "Escocia",     "sede": "Filadelfia",        "resultado": None},
-    {"fecha": "2026-06-27", "grupo": "C", "local": "Marruecos",    "visitante": "Haití",       "sede": "Boston",            "resultado": None},
-    {"fecha": "2026-06-27", "grupo": "J", "local": "Argentina",    "visitante": "Jordania",    "sede": "Dallas",            "resultado": None},
-    {"fecha": "2026-06-27", "grupo": "J", "local": "Argelia",      "visitante": "Austria",     "sede": "Miami",             "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "I", "local": "Francia",      "visitante": "Irak",        "sede": "San Francisco",     "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "I", "local": "Senegal",      "visitante": "Noruega",     "sede": "Minneapolis",       "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "L", "local": "Inglaterra",   "visitante": "Ghana",       "sede": "NRG Houston",       "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "L", "local": "Croacia",      "visitante": "Panamá",      "sede": "Los Ángeles",       "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "K", "local": "Portugal",     "visitante": "Uzbekistán",  "sede": "Kansas City",       "resultado": None},
-    {"fecha": "2026-06-28", "grupo": "K", "local": "Colombia",     "visitante": "RD Congo",    "sede": "Atlanta",           "resultado": None},
+    {"fecha": "2026-06-11", "grupo": "A", "local": "México", "visitante": "Sudáfrica", "sede": "Mexico City", "resultado": (2, 0)},
+    {"fecha": "2026-06-11", "grupo": "A", "local": "Corea", "visitante": "Rep. Checa", "sede": "Guadalajara (Zapopan)", "resultado": (2, 1)},
+    {"fecha": "2026-06-18", "grupo": "A", "local": "Rep. Checa", "visitante": "Sudáfrica", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-06-18", "grupo": "A", "local": "México", "visitante": "Corea", "sede": "Guadalajara (Zapopan)", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "A", "local": "Rep. Checa", "visitante": "México", "sede": "Mexico City", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "A", "local": "Sudáfrica", "visitante": "Corea", "sede": "Monterrey (Guadalupe)", "resultado": None},
+    {"fecha": "2026-06-12", "grupo": "B", "local": "Canadá", "visitante": "Bosnia", "sede": "Toronto", "resultado": (1, 1)},
+    {"fecha": "2026-06-13", "grupo": "B", "local": "Qatar", "visitante": "Suiza", "sede": "San Francisco Bay Area (Santa Clara)", "resultado": (1, 1)},
+    {"fecha": "2026-06-18", "grupo": "B", "local": "Suiza", "visitante": "Bosnia", "sede": "Los Angeles (Inglewood)", "resultado": None},
+    {"fecha": "2026-06-18", "grupo": "B", "local": "Canadá", "visitante": "Qatar", "sede": "Vancouver", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "B", "local": "Suiza", "visitante": "Canadá", "sede": "Vancouver", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "B", "local": "Bosnia", "visitante": "Qatar", "sede": "Seattle", "resultado": None},
+    {"fecha": "2026-06-13", "grupo": "C", "local": "Brasil", "visitante": "Marruecos", "sede": "New York/New Jersey (East Rutherford)", "resultado": (1, 1)},
+    {"fecha": "2026-06-13", "grupo": "C", "local": "Haití", "visitante": "Escocia", "sede": "Boston (Foxborough)", "resultado": (0, 1)},
+    {"fecha": "2026-06-19", "grupo": "C", "local": "Escocia", "visitante": "Marruecos", "sede": "Boston (Foxborough)", "resultado": None},
+    {"fecha": "2026-06-19", "grupo": "C", "local": "Brasil", "visitante": "Haití", "sede": "Philadelphia", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "C", "local": "Escocia", "visitante": "Brasil", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-06-24", "grupo": "C", "local": "Marruecos", "visitante": "Haití", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-06-12", "grupo": "D", "local": "EEUU", "visitante": "Paraguay", "sede": "Los Angeles (Inglewood)", "resultado": (4, 1)},
+    {"fecha": "2026-06-13", "grupo": "D", "local": "Australia", "visitante": "Turquía", "sede": "Vancouver", "resultado": (2, 0)},
+    {"fecha": "2026-06-19", "grupo": "D", "local": "EEUU", "visitante": "Australia", "sede": "Seattle", "resultado": None},
+    {"fecha": "2026-06-19", "grupo": "D", "local": "Turquía", "visitante": "Paraguay", "sede": "San Francisco Bay Area (Santa Clara)", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "D", "local": "Turquía", "visitante": "EEUU", "sede": "Los Angeles (Inglewood)", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "D", "local": "Paraguay", "visitante": "Australia", "sede": "San Francisco Bay Area (Santa Clara)", "resultado": None},
+    {"fecha": "2026-06-14", "grupo": "E", "local": "Alemania", "visitante": "Curazao", "sede": "Houston", "resultado": (7, 1)},
+    {"fecha": "2026-06-14", "grupo": "E", "local": "Costa Marfil", "visitante": "Ecuador", "sede": "Philadelphia", "resultado": (1, 0)},
+    {"fecha": "2026-06-20", "grupo": "E", "local": "Alemania", "visitante": "Costa Marfil", "sede": "Toronto", "resultado": None},
+    {"fecha": "2026-06-20", "grupo": "E", "local": "Ecuador", "visitante": "Curazao", "sede": "Kansas City", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "E", "local": "Curazao", "visitante": "Costa Marfil", "sede": "Philadelphia", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "E", "local": "Ecuador", "visitante": "Alemania", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
+    {"fecha": "2026-06-14", "grupo": "F", "local": "Holanda", "visitante": "Japón", "sede": "Dallas (Arlington)", "resultado": (2, 2)},
+    {"fecha": "2026-06-14", "grupo": "F", "local": "Suecia", "visitante": "Túnez", "sede": "Monterrey (Guadalupe)", "resultado": (5, 1)},
+    {"fecha": "2026-06-20", "grupo": "F", "local": "Holanda", "visitante": "Suecia", "sede": "Houston", "resultado": None},
+    {"fecha": "2026-06-20", "grupo": "F", "local": "Túnez", "visitante": "Japón", "sede": "Monterrey (Guadalupe)", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "F", "local": "Japón", "visitante": "Suecia", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-06-25", "grupo": "F", "local": "Túnez", "visitante": "Holanda", "sede": "Kansas City", "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica", "visitante": "Egipto", "sede": "Seattle", "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "G", "local": "Irán", "visitante": "Nueva Zelanda", "sede": "Los Angeles (Inglewood)", "resultado": None},
+    {"fecha": "2026-06-21", "grupo": "G", "local": "Bélgica", "visitante": "Irán", "sede": "Los Angeles (Inglewood)", "resultado": None},
+    {"fecha": "2026-06-21", "grupo": "G", "local": "Nueva Zelanda", "visitante": "Egipto", "sede": "Vancouver", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "G", "local": "Egipto", "visitante": "Irán", "sede": "Seattle", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "G", "local": "Nueva Zelanda", "visitante": "Bélgica", "sede": "Vancouver", "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "H", "local": "España", "visitante": "Cabo Verde", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-06-15", "grupo": "H", "local": "Arabia S.", "visitante": "Uruguay", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-06-21", "grupo": "H", "local": "España", "visitante": "Arabia S.", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-06-21", "grupo": "H", "local": "Uruguay", "visitante": "Cabo Verde", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "H", "local": "Cabo Verde", "visitante": "Arabia S.", "sede": "Houston", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "H", "local": "Uruguay", "visitante": "España", "sede": "Guadalajara (Zapopan)", "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "I", "local": "Francia", "visitante": "Senegal", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "I", "local": "Irak", "visitante": "Noruega", "sede": "Boston (Foxborough)", "resultado": None},
+    {"fecha": "2026-06-22", "grupo": "I", "local": "Francia", "visitante": "Irak", "sede": "Philadelphia", "resultado": None},
+    {"fecha": "2026-06-22", "grupo": "I", "local": "Noruega", "visitante": "Senegal", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "I", "local": "Noruega", "visitante": "Francia", "sede": "Boston (Foxborough)", "resultado": None},
+    {"fecha": "2026-06-26", "grupo": "I", "local": "Senegal", "visitante": "Irak", "sede": "Toronto", "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "J", "local": "Argentina", "visitante": "Argelia", "sede": "Kansas City", "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "J", "local": "Austria", "visitante": "Jordania", "sede": "San Francisco Bay Area (Santa Clara)", "resultado": None},
+    {"fecha": "2026-06-22", "grupo": "J", "local": "Argentina", "visitante": "Austria", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-06-22", "grupo": "J", "local": "Jordania", "visitante": "Argelia", "sede": "San Francisco Bay Area (Santa Clara)", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "J", "local": "Argelia", "visitante": "Austria", "sede": "Kansas City", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "J", "local": "Jordania", "visitante": "Argentina", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-06-17", "grupo": "K", "local": "Portugal", "visitante": "RD Congo", "sede": "Houston", "resultado": None},
+    {"fecha": "2026-06-17", "grupo": "K", "local": "Uzbekistán", "visitante": "Colombia", "sede": "Mexico City", "resultado": None},
+    {"fecha": "2026-06-23", "grupo": "K", "local": "Portugal", "visitante": "Uzbekistán", "sede": "Houston", "resultado": None},
+    {"fecha": "2026-06-23", "grupo": "K", "local": "Colombia", "visitante": "RD Congo", "sede": "Guadalajara (Zapopan)", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "K", "local": "Colombia", "visitante": "Portugal", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "K", "local": "RD Congo", "visitante": "Uzbekistán", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-06-17", "grupo": "L", "local": "Inglaterra", "visitante": "Croacia", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-06-17", "grupo": "L", "local": "Ghana", "visitante": "Panamá", "sede": "Toronto", "resultado": None},
+    {"fecha": "2026-06-23", "grupo": "L", "local": "Inglaterra", "visitante": "Ghana", "sede": "Boston (Foxborough)", "resultado": None},
+    {"fecha": "2026-06-23", "grupo": "L", "local": "Panamá", "visitante": "Croacia", "sede": "Toronto", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "L", "local": "Panamá", "visitante": "Inglaterra", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
+    {"fecha": "2026-06-27", "grupo": "L", "local": "Croacia", "visitante": "Ghana", "sede": "Philadelphia", "resultado": None},
+    {"fecha": "2026-07-04", "grupo": "?", "local": "W74", "visitante": "W77", "sede": "Philadelphia", "resultado": None},
+    {"fecha": "2026-07-04", "grupo": "?", "local": "W73", "visitante": "W75", "sede": "Houston", "resultado": None},
+    {"fecha": "2026-07-05", "grupo": "?", "local": "W76", "visitante": "W78", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
+    {"fecha": "2026-07-05", "grupo": "?", "local": "W79", "visitante": "W80", "sede": "Mexico City", "resultado": None},
+    {"fecha": "2026-07-06", "grupo": "?", "local": "W83", "visitante": "W84", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-07-06", "grupo": "?", "local": "W81", "visitante": "W82", "sede": "Seattle", "resultado": None},
+    {"fecha": "2026-07-07", "grupo": "?", "local": "W86", "visitante": "W88", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-07-07", "grupo": "?", "local": "W85", "visitante": "W87", "sede": "Vancouver", "resultado": None},
+    {"fecha": "2026-07-09", "grupo": "?", "local": "W89", "visitante": "W90", "sede": "Boston (Foxborough)", "resultado": None},
+    {"fecha": "2026-07-10", "grupo": "?", "local": "W93", "visitante": "W94", "sede": "Los Angeles (Inglewood)", "resultado": None},
+    {"fecha": "2026-07-11", "grupo": "?", "local": "W91", "visitante": "W92", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-07-11", "grupo": "?", "local": "W95", "visitante": "W96", "sede": "Kansas City", "resultado": None},
+    {"fecha": "2026-07-14", "grupo": "?", "local": "W97", "visitante": "W98", "sede": "Dallas (Arlington)", "resultado": None},
+    {"fecha": "2026-07-15", "grupo": "?", "local": "W99", "visitante": "W100", "sede": "Atlanta", "resultado": None},
+    {"fecha": "2026-07-18", "grupo": "?", "local": "L101", "visitante": "L102", "sede": "Miami (Miami Gardens)", "resultado": None},
+    {"fecha": "2026-07-19", "grupo": "?", "local": "W101", "visitante": "W102", "sede": "New York/New Jersey (East Rutherford)", "resultado": None},
 ]
+
 
 # ── Mapa de nombres del fixture → nombres en DEMO_STATS
 TEAM_MAP = {
