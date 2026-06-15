@@ -58,7 +58,7 @@ def get_team_matches(team_es, max_total=10):
             goles = m.get("goals1" if is_home else "goals2", [])
             scorers = ", ".join(f"{g['name']} ({g['minute']}')" for g in goles if "name" in g)
             all_matches.append({
-                "ano": year, "fecha": m["date"],
+                "año": year, "fecha": m["date"],
                 "condicion": "Local" if is_home else "Visitante",
                 "rival": rival, "gf": gf, "gc": gc,
                 "resultado": res, "marcador": f"{gf}-{gc}",
