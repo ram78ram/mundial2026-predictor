@@ -61,10 +61,6 @@ def obtener_momios(api_key: str | None = None) -> list[dict]:
         try:
             raw = fetch_live_odds(api_key)
             partidos = parse_odds(raw)
-            # mapear nombres en inglés a español
-            for p in partidos:
-                p["local"]     = EN_TO_ES.get(p["local"],     p["local"])
-                p["visitante"] = EN_TO_ES.get(p["visitante"], p["visitante"])
             CACHE_ODDS.write_text(json.dumps(partidos, ensure_ascii=False))
             print(f"  {len(partidos)} partidos con momios descargados")
             return partidos
