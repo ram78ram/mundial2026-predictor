@@ -115,12 +115,13 @@ with st.sidebar:
         stake       = st.number_input("Apuesta ($)", 1, 10000, 100, 10)
 
     else:
+        home = "Brasil"; away = "Argentina"
+        odd_h = 2.10; odd_d = 3.20; odd_a = 3.50
+        odd_o25 = 1.90; odd_u25 = 1.95; odd_o15 = 1.35
+        odd_btts_si = 1.75; odd_btts_no = 2.05
+        odd_dc1X = 1.30; odd_dcX2 = 1.40; stake = 100
         st.markdown("### Filtrar fixture")
-        filtro_estado = st.multiselect(
-            "Estado",
-            ["jugado", "hoy", "proximo"],
-            default=["hoy", "proximo"],
-        )
+        filtro_estado = st.multiselect("Estado",["jugado","hoy","proximo"],default=["hoy","proximo"])
         grupos_disp = sorted(set(p["grupo"] for p in all_matches))
         filtro_grupo = st.multiselect("Grupo", grupos_disp, default=grupos_disp)
         solo_con_modelo = st.toggle("Solo equipos con modelo", value=False)
