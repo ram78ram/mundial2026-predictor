@@ -320,7 +320,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     with c5: st.markdown(f'<div class="metric-card"><div class="metric-lbl">BTTS sí</div><div class="metric-val">{mk["btts"]["si"]}%</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    col_l, col_m, col_r = st.columns([1.2,1.2,1.6])
+    col_l, col_m = st.columns([1.2,1.2])
 
     with col_l:
         st.markdown("#### 1X2")
@@ -346,26 +346,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                            paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig2, use_container_width=True)
 
-    with col_r:
-        st.markdown("#### Valor esperado")
-        if ev:
-            ev_df = pd.DataFrame([
-                {"Mercado": k.upper().replace("_"," "), "EV": v["ev_$"], "Señal": v["señal"]}
-                for k,v in ev.items()
-            ]).sort_values("EV", ascending=True)
-            colors = ["#198754" if x>0 else "#dc3545" for x in ev_df["EV"]]
-            fig3 = go.Figure(go.Bar(
-                x=ev_df["EV"], y=ev_df["Mercado"], orientation="h",
-                marker_color=colors,
-                text=[f"${v:+.2f}" for v in ev_df["EV"]], textposition="outside",
-            ))
-            fig3.add_vline(x=0, line_width=1, line_color="gray")
-            fig3.update_layout(margin=dict(t=10,b=10,l=0,r=40), height=240,
-                               xaxis=dict(showgrid=False,showticklabels=False),
-                               paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
-            st.plotly_chart(fig3, use_container_width=True)
-        else:
-            st.info("Agrega momios para ver EV.")
+
 
     st.markdown("---")
 
