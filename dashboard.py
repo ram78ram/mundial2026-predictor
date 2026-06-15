@@ -222,7 +222,9 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
 
             with col_btn:
                 if p["tiene_modelo"]:
-                    lbl = "Ver predicción" if not p["resultado"] else "Ver retro-análisis"
+                    from datetime import date as _date2
+                    es_hoy = _date2.fromisoformat(p["fecha"]) == _date2.today()
+                    lbl = "Ver retro-análisis" if (p["resultado"] and not es_hoy) else "Ver predicción"
                     if st.button(lbl, key=f"btn_{p['fecha']}_{p['local']}_{p['visitante']}"):
                         st.session_state["partido_sel"] = p
                         st.session_state["vista_override"] = True
