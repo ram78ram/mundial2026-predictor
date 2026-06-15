@@ -61,6 +61,8 @@ DEMO_STATS = {
     "Túnez":        {"ataque": 1.00, "defensa": 1.15},
     "Uzbekistán":   {"ataque": 1.00, "defensa": 1.20},
     "Argelia":      {"ataque": 1.10, "defensa": 1.10},
+    "Irán":          {"ataque": 1.15, "defensa": 1.10},
+    "Nueva Zelanda": {"ataque": 0.85, "defensa": 1.30},
 }
 
 
