@@ -30,7 +30,7 @@ FIXTURE = [
     {"fecha": "2026-06-13", "grupo": "E", "local": "Ecuador",      "visitante": "Costa Marfil","sede": "Kansas City",       "resultado": None},
     # Grupo F
     {"fecha": "2026-06-13", "grupo": "F", "local": "Holanda",      "visitante": "Japón",       "sede": "Houston",           "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": (1, 1)},
+    {"fecha": "2026-06-14", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": (1, 1)},
     # Grupo G
     {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica",      "visitante": "Egipto",      "sede": "Miami",             "resultado": (3, 0)},
     {"fecha": "2026-06-15", "grupo": "G", "local": "Colombia",     "visitante": "Arabia S.",   "sede": "Dallas",            "resultado": (2, 1)},
