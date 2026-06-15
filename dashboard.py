@@ -100,18 +100,16 @@ with st.sidebar:
     vista = st.radio("Vista", ["Fixture", "Analizador de partido", "Monte Carlo", "Alertas EV+", "Bankroll"], label_visibility="collapsed")
 
     if vista == "Analizador de partido":
-        st.markdown("### Partido")
+        st.markdown("### Equipos")
         equipos = sorted(DEMO_STATS.keys())
         home = st.selectbox("Local", equipos, index=equipos.index("Brasil"))
         away_opts = [e for e in equipos if e != home]
         away = st.selectbox("Visitante", away_opts, index=away_opts.index("Argentina") if "Argentina" in away_opts else 0)
-
-        st.markdown("### Momios (decimal)")
+        st.markdown("### Momios de Playdoit")
+        st.caption("Ingresa los momios que ves en Playdoit")
         odd_h  = st.number_input("Local",     1.01, 50.0, 2.10, 0.05)
         odd_d  = st.number_input("Empate",    1.01, 50.0, 3.20, 0.05)
         odd_a  = st.number_input("Visitante", 1.01, 50.0, 3.50, 0.05)
-
-        st.markdown("### Más mercados")
         odd_o25     = st.number_input("Over 2.5",  1.01, 20.0, 1.90, 0.05)
         odd_u25     = st.number_input("Under 2.5", 1.01, 20.0, 1.95, 0.05)
         odd_o15     = st.number_input("Over 1.5",  1.01, 20.0, 1.35, 0.05)
@@ -120,6 +118,11 @@ with st.sidebar:
         odd_dc1X    = st.number_input("DC 1X",     1.01, 20.0, 1.30, 0.05)
         odd_dcX2    = st.number_input("DC X2",     1.01, 20.0, 1.40, 0.05)
         stake       = st.number_input("Apuesta ($)", 1, 10000, 100, 10)
+        analizar_btn = st.button("🔍 Analizar partido", type="primary", use_container_width=True)
+        if not analizar_btn and "analizador_ready" not in st.session_state:
+            st.session_state["analizador_ready"] = False
+        if analizar_btn:
+            st.session_state["analizador_ready"] = True
 
     else:
         home = "Brasil"; away = "Argentina"
@@ -538,10 +541,27 @@ if st.session_state.get("vista_override") and "partido_sel" in st.session_state:
 
 # Desde sidebar
 elif vista == "Analizador de partido":
-    momios = {"local":odd_h,"empate":odd_d,"visitante":odd_a,
-              "over_2.5":odd_o25,"under_2.5":odd_u25,"over_1.5":odd_o15,
-              "btts_si":odd_btts_si,"btts_no":odd_btts_no,"dc_1X":odd_dc1X,"dc_X2":odd_dcX2}
-    mostrar_analisis(home, away, momios, stake)
+    if st.session_state.get("analizador_ready", False):
+        momios = {"local":odd_h,"empate":odd_d,"visitante":odd_a,
+                  "over_2.5":odd_o25,"under_2.5":odd_u25,"over_1.5":odd_o15,
+                  "btts_si":odd_btts_si,"btts_no":odd_btts_no,"dc_1X":odd_dc1X,"dc_X2":odd_dcX2}
+        mostrar_analisis(home, away, momios, stake)
+    else:
+        st.markdown("## Analizador de partido")
+        st.info("👈 Selecciona los equipos, ingresa los momios de Playdoit y presiona **Analizar partido**")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**¿Cómo usar?**")
+            st.markdown("1. Elige **Local** y **Visitante**")
+            st.markdown("2. Abre Playdoit y copia los momios")
+            st.markdown("3. Ingrésalos en el panel izquierdo")
+            st.markdown("4. Presiona **🔍 Analizar partido**")
+        with col2:
+            st.markdown("**¿Qué te dice el sistema?**")
+            st.markdown("- Probabilidad real de cada mercado")
+            st.markdown("- Momio mínimo para que haya valor")
+            st.markdown("- Marcadores más probables")
+            st.markdown("- Historial de ambos equipos")
 
 st.markdown("<br><center><small>Modelo de Poisson · Datos estadísticos históricos · No garantiza resultados</small></center>", unsafe_allow_html=True)
 
