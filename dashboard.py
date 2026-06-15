@@ -43,6 +43,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+import os
+ODDS_API_KEY = None
+try:
+    ODDS_API_KEY = st.secrets["ODDS_API_KEY"]
+except:
+    ODDS_API_KEY = os.getenv("ODDS_API_KEY")
+
 @st.cache_resource
 def get_predictor():
     return Predictor()
