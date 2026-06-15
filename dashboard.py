@@ -195,7 +195,12 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
                 st.markdown(f'Grupo **{p["grupo"]}**<br>{estado_tag}<br><small style="color:#888">{p["sede"]}</small>', unsafe_allow_html=True)
 
             with col_match:
-                if p["resultado"]:
+                # Solo mostrar marcador si el partido ya terminó (fecha pasada)
+                from datetime import date as _date
+                partido_terminado = (p["estado"] == "jugado" and
+                                     _date.fromisoformat(p["fecha"]) < _date.today())
+
+                if p["resultado"] and partido_terminado:
                     gh, ga = p["resultado"]
                     st.markdown(
                         f'<div style="text-align:center;padding:8px 0">'
