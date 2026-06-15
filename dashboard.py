@@ -490,41 +490,42 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
 
         def _render_history(equipo, col):
             with col:
-                st.markdown(f"**{equipo}**")
-                rep = get_full_report(equipo)
-                tab_gen, tab_loc = st.tabs([f"Últimos {len(rep['ultimos_10'])} partidos", "Como local"])
-                with tab_gen:
-                    s = rep["stats_10"]
-                    if s:
-                        m1,m2,m3,m4 = st.columns(4)
-                        m1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
-                        m2.metric("Prom. GF", s["promedio_gf"])
-                        m3.metric("Prom. GC", s["promedio_gc"])
-                        m4.metric("Prom. total", s["promedio_total"])
-                    if rep["ultimos_10"]:
-                        rows = [{"Año": m["año"], "Rival": m["rival"],
-                                 "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
-                                 "Marcador": m["marcador"],
-                                 "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
-                                 "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
-                                for m in rep["ultimos_10"]]
-                        st.dataframe(_pd2.DataFrame(rows), use_container_width=True, hide_index=True, height=300)
-                with tab_loc:
-                    sl = rep["stats_local"]
-                    if sl:
-                        m1,m2,m3 = st.columns(3)
-                        m1.metric("V/E/D local", f"{sl['victorias']}/{sl['empates']}/{sl['derrotas']}")
-                        m2.metric("Prom. GF local", sl["promedio_gf"])
-                        m3.metric("Prom. GC local", sl["promedio_gc"])
-                    if rep["local_5"]:
-                        rows_l = [{"Año": m["año"], "Rival": m["rival"],
-                                   "Marcador": m["marcador"],
-                                   "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
-                                   "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
-                                  for m in rep["local_5"]]
-                        st.dataframe(_pd2.DataFrame(rows_l), use_container_width=True, hide_index=True)
-                    else:
-                        st.caption("Sin datos como local")
+                st.markdown(f'**{equipo}**')
+                from team_history import get_team_matches, compute_stats
+                todos   = get_team_matches(equipo, 10)
+                locales = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Local'][:5]
+                visitas = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Visitante'][:5]
+                def _rows(lst):
+                    return [{'Año': m['año'], 'Rival': m['rival'],
+                             'Cond.': '🏠' if m['condicion']=='Local' else '✈️',
+                             'Marcador': m['marcador'],
+                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D'),
+                             'Goleadores': m['goleadores'][:35] if m['goleadores'] != '—' else '—'}
+                            for m in lst]
+                def _stats(lst):
+                    s = compute_stats(lst)
+                    if not s: return
+                    c1,c2,c3,c4 = st.columns(4)
+                    c1.metric('V/E/D', f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
+                    c2.metric('Prom. GF', s['promedio_gf'])
+                    c3.metric('Prom. GC', s['promedio_gc'])
+                    c4.metric('Total/ptdo', s['promedio_total'])
+                t1, t2, t3 = st.tabs([
+                    f'📋 Últimos {len(todos)}',
+                    f'🏠 Local ({len(locales)})',
+                    f'✈️ Visitante ({len(visitas)})'
+                ])
+                with t1:
+                    _stats(todos)
+                    if todos: st.dataframe(_pd2.DataFrame(_rows(todos)), use_container_width=True, hide_index=True, height=300)
+                with t2:
+                    _stats(locales)
+                    if locales: st.dataframe(_pd2.DataFrame(_rows(locales)), use_container_width=True, hide_index=True)
+                    else: st.caption('Sin datos como local')
+                with t3:
+                    _stats(visitas)
+                    if visitas: st.dataframe(_pd2.DataFrame(_rows(visitas)), use_container_width=True, hide_index=True)
+                    else: st.caption('Sin datos como visitante')
 
         _render_history(home, col_h1)
         _render_history(away, col_h2)
