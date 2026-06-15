@@ -255,7 +255,38 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     else:
         st.markdown(f"## {home}  vs  {away}")
 
-    st.caption(f"λ {home}: **{lh}** · λ {away}: **{la}** · Total esperado: **{round(lh+la,2)}** goles · Overround: **{round((1/momios.get('local',2)+1/momios.get('empate',3)+1/momios.get('visitante',3.5)-1)*100,1)}%**")
+    ovr = round((1/momios.get('local',2)+1/momios.get('empate',3)+1/momios.get('visitante',3.5)-1)*100,1)
+    st.caption(f"λ {home}: **{lh}** · λ {away}: **{la}** · Total esperado: **{round(lh+la,2)}** goles · Overround: **{ovr}%**")
+    import pandas as _pd
+    def _imp(o): return round(100/o,1) if o>1 else 0
+    def _etag(pm,o):
+        if o<=1: return "—"
+        return "✅ EV+" if (pm/100*o-1)>0 else "❌ EV-"
+    def _ec(pm,o): return f"{round(pm-_imp(o),1):+.1f}%" if o>1 else "—"
+    rows_m=[
+        (f"🏠 {home}",mk["1x2"]["local"],momios.get("local",0)),
+        ("🤝 Empate",mk["1x2"]["empate"],momios.get("empate",0)),
+        (f"✈️ {away}",mk["1x2"]["visitante"],momios.get("visitante",0)),
+        ("⚽ Over 2.5",mk["over_under"]["over_2.5"],momios.get("over_2.5",0)),
+        ("⚽ Under 2.5",mk["over_under"]["under_2.5"],momios.get("under_2.5",0)),
+        ("🎯 BTTS Sí",mk["btts"]["si"],momios.get("btts_si",0)),
+        ("🎯 BTTS No",mk["btts"]["no"],momios.get("btts_no",0)),
+    ]
+    df_m=_pd.DataFrame([{"Mercado":n,"P.Modelo":f"{p}%","Momio":f"{o:.2f}" if o>1 else "—","P.Implícita":f"{_imp(o)}%" if o>1 else "—","Edge":_ec(p,o),"Señal":_etag(p,o)} for n,p,o in rows_m])
+    def _cs(v):
+        try:
+            val=float(v.replace("%","").replace("+",""))
+            if val>2: return "background:#d1e7dd;color:#0f5132;font-weight:700"
+            if val<-2: return "background:#f8d7da;color:#842029"
+        except: pass
+        return ""
+    def _css(v):
+        if "EV+" in str(v): return "background:#d1e7dd;color:#0f5132;font-weight:700"
+        if "EV-" in str(v): return "background:#f8d7da;color:#842029"
+        return ""
+    st.markdown("---")
+    st.markdown("#### Momios vs Probabilidades del modelo")
+    st.dataframe(df_m.style.map(_cs,subset=["Edge"]).map(_css,subset=["Señal"]),use_container_width=True,hide_index=True)
     st.markdown("---")
 
     # Métricas 1X2
