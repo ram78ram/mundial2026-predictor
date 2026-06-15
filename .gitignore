@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+data/bankroll.db
+data/wc2026_live.json
+data/*.csv
+.env
+*.egg-info/
+.DS_Store
