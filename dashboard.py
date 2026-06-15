@@ -381,7 +381,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
             if val=="EV+": return "background:#d1e7dd;color:#0f5132;font-weight:700"
             if val=="EV-": return "background:#f8d7da;color:#842029"
             return ""
-        st.dataframe(df_ev.style.applymap(color_s, subset=["Señal"]),
+        st.dataframe(df_ev.style.map(color_s, subset=["Señal"]),
                      use_container_width=True, hide_index=True)
         best_k = max(ev, key=lambda k: ev[k]["ev_$"])
         best = ev[best_k]
@@ -707,7 +707,7 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             cols_show = ["id","fecha","partido","mercado","odd","stake",
                          "prob_modelo","ev_esperado","resultado","retorno"]
             st.dataframe(
-                hist[cols_show].style.applymap(color_resultado, subset=["resultado"]),
+                hist[cols_show].style.map(color_resultado, subset=["resultado"]),
                 use_container_width=True, hide_index=True,
             )
             if not hist[hist["resultado"]!="pendiente"].empty:
