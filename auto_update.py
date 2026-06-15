@@ -125,6 +125,9 @@ def patch_fixture(dry_run: bool = False) -> list[str]:
     content = fixture_path.read_text()
     changes = []
 
+    from datetime import date
+    today = date.today().isoformat()
+    
     for (local, visitante), score in live.items():
         if score is None:
             continue
@@ -151,6 +154,10 @@ def patch_fixture(dry_run: bool = False) -> list[str]:
             match = re.search(pat, content)
             if match:
                 old_block = match.group(0)
+                # NO aplicar resultados de partidos de hoy o futuros
+                fecha_en_bloque = re.search(r'"fecha": "(\d{4}-\d{2}-\d{2})"', old_block)
+                if fecha_en_bloque and fecha_en_bloque.group(1) >= today:
+                    continue
                 new_block = old_block.replace('"resultado": None', f'"resultado": {score}')
                 changes.append(f"  {local} {score[0]}-{score[1]} {visitante}")
                 if not dry_run:
