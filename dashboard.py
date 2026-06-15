@@ -458,48 +458,24 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         st.markdown("#### 📊 Comparativa de tendencias (últimos 10 partidos)")
         col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
 
-        def _trend_row(label, h_val, a_val, suffix="%"):
-            h_color = "#198754" if h_val >= a_val else "#dc3545"
-            a_color = "#198754" if a_val >= h_val else "#dc3545"
-            with col_t1:
-                st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
-                           f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
-                           unsafe_allow_html=True)
-            with col_t2:
-                st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
-                           unsafe_allow_html=True)
-            with col_t3:
-                st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
-                           f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
-                           unsafe_allow_html=True)
-
-        with col_t1: st.markdown(f'<div style="text-align:right;font-weight:700;padding:4px 0">{home}</div>', unsafe_allow_html=True)
-        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:11px">vs</div>', unsafe_allow_html=True)
-        with col_t3: st.markdown(f'<div style="font-weight:700;padding:4px 0">{away}</div>', unsafe_allow_html=True)
-
-        _trend_row("Victorias", ht.get("win_%",0), at.get("win_%",0))
-        _trend_row("Over 2.5", ht.get("over_2.5_%",0), at.get("over_2.5_%",0))
-        _trend_row("Over 1.5", ht.get("over_1.5_%",0), at.get("over_1.5_%",0))
-        _trend_row("BTTS Sí", ht.get("btts_%",0), at.get("btts_%",0))
-        _trend_row("Clean Sheet", ht.get("cs_%",0), at.get("cs_%",0))
-        _trend_row("Siempre marca", ht.get("scored_%",0), at.get("scored_%",0))
-        _trend_row("Prom. GF", ht.get("avg_gf",0), at.get("avg_gf",0), "")
-        _trend_row("Prom. GC", ht.get("avg_gc",0), at.get("avg_gc",0), "")
-        _trend_row("Prom. total", ht.get("avg_total",0), at.get("avg_total",0), "")
-
-        # Racha actual
-        mapa_r = {"V":"victorias","E":"empates","D":"derrotas"}
-        h_racha = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
-        a_racha = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
-        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0;font-weight:600">{h_racha}</div>', unsafe_allow_html=True)
-        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Racha actual</div>', unsafe_allow_html=True)
-        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0;font-weight:600">{a_racha}</div>', unsafe_allow_html=True)
-
-        h_invicto = f"{ht.get('sin_perder',0)} sin perder"
-        a_invicto = f"{at.get('sin_perder',0)} sin perder"
-        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0">{h_invicto}</div>', unsafe_allow_html=True)
-        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Invicto</div>', unsafe_allow_html=True)
-        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0">{a_invicto}</div>', unsafe_allow_html=True)
+        import pandas as _pd3
+        mapa_r = {'V':'victorias','E':'empates','D':'derrotas'}
+        h_racha_txt = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
+        a_racha_txt = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
+        df_cmp = _pd3.DataFrame([
+            [f"{ht.get('win_%',0)}%",     'Victorias %',        f"{at.get('win_%',0)}%"],
+            [f"{ht.get('over_2.5_%',0)}%",'Over 2.5 %',         f"{at.get('over_2.5_%',0)}%"],
+            [f"{ht.get('over_1.5_%',0)}%",'Over 1.5 %',         f"{at.get('over_1.5_%',0)}%"],
+            [f"{ht.get('btts_%',0)}%",    'BTTS Sí %',          f"{at.get('btts_%',0)}%"],
+            [f"{ht.get('cs_%',0)}%",      'Clean Sheet %',      f"{at.get('cs_%',0)}%"],
+            [f"{ht.get('scored_%',0)}%",  'Siempre marca %',    f"{at.get('scored_%',0)}%"],
+            [str(ht.get('avg_gf',0)),     'Prom. GF',           str(at.get('avg_gf',0))],
+            [str(ht.get('avg_gc',0)),     'Prom. GC',           str(at.get('avg_gc',0))],
+            [str(ht.get('avg_total',0)),  'Prom. total/partido',str(at.get('avg_total',0))],
+            [h_racha_txt,                 'Racha actual',       a_racha_txt],
+            [str(ht.get('sin_perder',0)), 'Sin perder',         str(at.get('sin_perder',0))],
+        ], columns=[home, 'Estadística', away])
+        st.dataframe(df_cmp, use_container_width=True, hide_index=True)
 
     except Exception as e:
         st.caption(f"Tendencias no disponibles: {e}")
