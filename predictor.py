@@ -92,7 +92,9 @@ class Predictor:
         for key, val in self.team_stats.items():
             if key.lower() == nombre.lower() or nombre.lower() in key.lower():
                 return {"nombre": key, **val}
-        raise KeyError(f"'{nombre}' no encontrado. Disponibles: {', '.join(self.team_stats)}")
+        # Si no encuentra, usa stats promedio
+        print(f"  Aviso: '{nombre}' no en stats, usando promedio")
+        return {"nombre": nombre, "ataque": 1.10, "defensa": 1.15}
 
     # ─────────────────────────────────────────────────────────
     #  MÉTODO PRINCIPAL
