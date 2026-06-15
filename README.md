@@ -42,3 +42,4 @@ Basado en distribución de Poisson con parámetros:
 - Simulación Monte Carlo para probabilidades de avance por ronda
 
 ⚠️ Las probabilidades son estimaciones estadísticas. Las apuestas conllevan riesgo financiero.
+# Mon Jun 15 17:50:59 CST 2026
