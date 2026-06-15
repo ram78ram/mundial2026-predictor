@@ -128,7 +128,7 @@ with st.sidebar:
 # ═════════════════════════════════════════════════════════════
 #  VISTA FIXTURE
 # ═════════════════════════════════════════════════════════════
-if vista == "Fixture":
+if vista == "Fixture" and not st.session_state.get("vista_override"):
     st.markdown("# Fixture Mundial 2026")
 
     # Métricas rápidas
