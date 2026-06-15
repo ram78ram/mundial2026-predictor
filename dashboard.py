@@ -456,24 +456,53 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
 
         # ── Comparativa de tendencias
         st.markdown("#### 📊 Comparativa de tendencias (últimos 10 partidos)")
-        import pandas as _pd3
+        col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
+
+        def _trend_row(label, h_val, a_val, suffix="%"):
+            h_color = "#198754" if h_val >= a_val else "#dc3545"
+            a_color = "#198754" if a_val >= h_val else "#dc3545"
+            with col_t1:
+                st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+            with col_t2:
+                st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
+                           unsafe_allow_html=True)
+            with col_t3:
+                st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+
+        with col_t1: st.markdown(f'<div style="text-align:right;font-weight:700;padding:4px 0">{home}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:11px">vs</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-weight:700;padding:4px 0">{away}</div>', unsafe_allow_html=True)
+
+        _trend_row("Victorias", ht.get("win_%",0), at.get("win_%",0))
+        _trend_row("Over 2.5", ht.get("over_2.5_%",0), at.get("over_2.5_%",0))
+        _trend_row("Over 1.5", ht.get("over_1.5_%",0), at.get("over_1.5_%",0))
+        _trend_row("BTTS Sí", ht.get("btts_%",0), at.get("btts_%",0))
+        _trend_row("Clean Sheet", ht.get("cs_%",0), at.get("cs_%",0))
+        _trend_row("Siempre marca", ht.get("scored_%",0), at.get("scored_%",0))
+        _trend_row("Prom. GF", ht.get("avg_gf",0), at.get("avg_gf",0), "")
+        _trend_row("Prom. GC", ht.get("avg_gc",0), at.get("avg_gc",0), "")
+        _trend_row("Prom. total", ht.get("avg_total",0), at.get("avg_total",0), "")
+
+        # Racha actual
         mapa_r = {"V":"victorias","E":"empates","D":"derrotas"}
-        h_racha_txt = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
-        a_racha_txt = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
-        df_cmp = _pd3.DataFrame([
-            [f"{ht.get('win_%',0)}%",      "Victorias %",          f"{at.get('win_%',0)}%"],
-            [f"{ht.get('over_2.5_%',0)}%", "Over 2.5 %",           f"{at.get('over_2.5_%',0)}%"],
-            [f"{ht.get('over_1.5_%',0)}%", "Over 1.5 %",           f"{at.get('over_1.5_%',0)}%"],
-            [f"{ht.get('btts_%',0)}%",     "BTTS Sí %",            f"{at.get('btts_%',0)}%"],
-            [f"{ht.get('cs_%',0)}%",       "Clean Sheet %",        f"{at.get('cs_%',0)}%"],
-            [f"{ht.get('scored_%',0)}%",   "Siempre marca %",      f"{at.get('scored_%',0)}%"],
-            [str(ht.get('avg_gf',0)),      "Prom. GF",             str(at.get('avg_gf',0))],
-            [str(ht.get('avg_gc',0)),      "Prom. GC",             str(at.get('avg_gc',0))],
-            [str(ht.get('avg_total',0)),   "Prom. total/partido",  str(at.get('avg_total',0))],
-            [h_racha_txt,                  "Racha actual",         a_racha_txt],
-            [str(ht.get('sin_perder',0)),  "Sin perder",           str(at.get('sin_perder',0))],
-        ], columns=[home, "Estadística", away])
-        st.dataframe(df_cmp, use_container_width=True, hide_index=True)
+        h_racha = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
+        a_racha = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0;font-weight:600">{h_racha}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Racha actual</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0;font-weight:600">{a_racha}</div>', unsafe_allow_html=True)
+
+        h_invicto = f"{ht.get('sin_perder',0)} sin perder"
+        a_invicto = f"{at.get('sin_perder',0)} sin perder"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0">{h_invicto}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Invicto</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0">{a_invicto}</div>', unsafe_allow_html=True)
+
+    except Exception as e:
+        st.caption(f"Tendencias no disponibles: {e}")
 
     # ── Historial de equipos
     st.markdown("---")
@@ -486,40 +515,40 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         def _render_history(equipo, col):
             with col:
                 st.markdown(f"**{equipo}**")
-                from team_history import get_team_matches, compute_stats
-                todos   = get_team_matches(equipo, 10)
-                locales = [m for m in get_team_matches(equipo, 30) if m["condicion"]=="Local"][:5]
-                visitas = [m for m in get_team_matches(equipo, 30) if m["condicion"]=="Visitante"][:5]
-
-                def _rows(lst):
-                    return [{"Año": m["año"], "Rival": m["rival"],
-                             "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
-                             "Marcador": m["marcador"],
-                             "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
-                             "Goleadores": m["goleadores"][:35] if m["goleadores"]!="—" else "—"}
-                            for m in lst]
-
-                def _stats(lst):
-                    s = compute_stats(lst)
-                    if not s: return
-                    c1,c2,c3,c4 = st.columns(4)
-                    c1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
-                    c2.metric("Prom. GF", s["promedio_gf"])
-                    c3.metric("Prom. GC", s["promedio_gc"])
-                    c4.metric("Total/partido", s["promedio_total"])
-
-                t1,t2,t3 = st.tabs([f"Últimos {len(todos)}", "🏠 Como local", "✈️ Como visitante"])
-                with t1:
-                    _stats(todos)
-                    if todos: st.dataframe(_pd2.DataFrame(_rows(todos)), use_container_width=True, hide_index=True, height=300)
-                with t2:
-                    _stats(locales)
-                    if locales: st.dataframe(_pd2.DataFrame(_rows(locales)), use_container_width=True, hide_index=True)
-                    else: st.caption("Sin datos como local")
-                with t3:
-                    _stats(visitas)
-                    if visitas: st.dataframe(_pd2.DataFrame(_rows(visitas)), use_container_width=True, hide_index=True)
-                    else: st.caption("Sin datos como visitante")
+                rep = get_full_report(equipo)
+                tab_gen, tab_loc = st.tabs([f"Últimos {len(rep['ultimos_10'])} partidos", "Como local"])
+                with tab_gen:
+                    s = rep["stats_10"]
+                    if s:
+                        m1,m2,m3,m4 = st.columns(4)
+                        m1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
+                        m2.metric("Prom. GF", s["promedio_gf"])
+                        m3.metric("Prom. GC", s["promedio_gc"])
+                        m4.metric("Prom. total", s["promedio_total"])
+                    if rep["ultimos_10"]:
+                        rows = [{"Año": m["año"], "Rival": m["rival"],
+                                 "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
+                                 "Marcador": m["marcador"],
+                                 "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                 "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                for m in rep["ultimos_10"]]
+                        st.dataframe(_pd2.DataFrame(rows), use_container_width=True, hide_index=True, height=300)
+                with tab_loc:
+                    sl = rep["stats_local"]
+                    if sl:
+                        m1,m2,m3 = st.columns(3)
+                        m1.metric("V/E/D local", f"{sl['victorias']}/{sl['empates']}/{sl['derrotas']}")
+                        m2.metric("Prom. GF local", sl["promedio_gf"])
+                        m3.metric("Prom. GC local", sl["promedio_gc"])
+                    if rep["local_5"]:
+                        rows_l = [{"Año": m["año"], "Rival": m["rival"],
+                                   "Marcador": m["marcador"],
+                                   "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                   "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                  for m in rep["local_5"]]
+                        st.dataframe(_pd2.DataFrame(rows_l), use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("Sin datos como local")
 
         _render_history(home, col_h1)
         _render_history(away, col_h2)
