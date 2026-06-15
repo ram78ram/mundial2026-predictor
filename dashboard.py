@@ -406,6 +406,58 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_mk, use_container_width=True)
 
+
+    # ── Historial de equipos
+    st.markdown("---")
+    st.markdown("### Historial de partidos")
+    col_h1, col_h2 = st.columns(2)
+    try:
+        from team_history import get_full_report
+        import pandas as _pd2
+
+        def _render_history(equipo, col):
+            with col:
+                st.markdown(f"**{equipo}**")
+                rep = get_full_report(equipo)
+                tab_gen, tab_loc = st.tabs([f"Últimos {len(rep['ultimos_10'])} partidos", "Como local"])
+                with tab_gen:
+                    s = rep["stats_10"]
+                    if s:
+                        m1,m2,m3,m4 = st.columns(4)
+                        m1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
+                        m2.metric("Prom. GF", s["promedio_gf"])
+                        m3.metric("Prom. GC", s["promedio_gc"])
+                        m4.metric("Prom. total", s["promedio_total"])
+                    if rep["ultimos_10"]:
+                        rows = [{"Año": m["año"], "Rival": m["rival"],
+                                 "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
+                                 "Marcador": m["marcador"],
+                                 "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                 "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                for m in rep["ultimos_10"]]
+                        st.dataframe(_pd2.DataFrame(rows), use_container_width=True, hide_index=True, height=300)
+                with tab_loc:
+                    sl = rep["stats_local"]
+                    if sl:
+                        m1,m2,m3 = st.columns(3)
+                        m1.metric("V/E/D local", f"{sl['victorias']}/{sl['empates']}/{sl['derrotas']}")
+                        m2.metric("Prom. GF local", sl["promedio_gf"])
+                        m3.metric("Prom. GC local", sl["promedio_gc"])
+                    if rep["local_5"]:
+                        rows_l = [{"Año": m["año"], "Rival": m["rival"],
+                                   "Marcador": m["marcador"],
+                                   "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                   "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                  for m in rep["local_5"]]
+                        st.dataframe(_pd2.DataFrame(rows_l), use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("Sin datos como local disponibles")
+
+        _render_history(home, col_h1)
+        _render_history(away, col_h2)
+    except Exception as e:
+        st.warning(f"Historial no disponible: {e}")
+
     # EV tabla completa
     if ev:
         st.markdown("---")
