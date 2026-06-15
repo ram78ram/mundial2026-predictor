@@ -30,17 +30,17 @@ FIXTURE = [
     {"fecha": "2026-06-14", "grupo": "E", "local": "Ecuador",      "visitante": "Costa Marfil","sede": "Kansas City",       "resultado": (1, 2)},
     # Grupo F
     {"fecha": "2026-06-14", "grupo": "F", "local": "Holanda",      "visitante": "Japón",       "sede": "Houston",           "resultado": (2, 1)},
-    {"fecha": "2026-06-15", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": None},
+    {"fecha": "2026-06-14", "grupo": "F", "local": "Suecia",       "visitante": "Túnez",       "sede": "Monterrey",         "resultado": None},
     # Grupo G
     {"fecha": "2026-06-15", "grupo": "G", "local": "Bélgica",      "visitante": "Egipto",      "sede": "Miami",             "resultado": None},
     {"fecha": "2026-06-15", "grupo": "G", "local": "Colombia",     "visitante": "Arabia S.",   "sede": "Dallas",            "resultado": None},
     # Grupo H
     {"fecha": "2026-06-15", "grupo": "H", "local": "España",       "visitante": "Cabo Verde",  "sede": "Atlanta",           "resultado": None},
     {"fecha": "2026-06-15", "grupo": "H", "local": "Arabia S.",    "visitante": "Uruguay",     "sede": "Miami",             "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "H", "local": "Camerún",      "visitante": "Dinamarca",   "sede": "NRG Houston",       "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "H", "local": "Camerún",      "visitante": "Dinamarca",   "sede": "NRG Houston",       "resultado": None},
     # Grupo I
-    {"fecha": "2026-06-15", "grupo": "I", "local": "Francia",      "visitante": "Senegal",     "sede": "San Francisco",     "resultado": None},
-    {"fecha": "2026-06-15", "grupo": "I", "local": "Noruega",      "visitante": "Irak",        "sede": "Minneapolis",       "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "I", "local": "Francia",      "visitante": "Senegal",     "sede": "San Francisco",     "resultado": None},
+    {"fecha": "2026-06-16", "grupo": "I", "local": "Noruega",      "visitante": "Irak",        "sede": "Minneapolis",       "resultado": None},
     # Grupo J
     {"fecha": "2026-06-16", "grupo": "J", "local": "Argentina",    "visitante": "Argelia",     "sede": "Dallas",            "resultado": None},
     {"fecha": "2026-06-16", "grupo": "J", "local": "Austria",      "visitante": "Jordania",    "sede": "Miami",             "resultado": None},
