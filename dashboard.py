@@ -500,33 +500,6 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     except Exception as e:
         st.warning(f"Historial no disponible: {e}")
 
-    # EV tabla completa
-    if ev:
-        st.markdown("---")
-        st.markdown("#### Tabla completa de valor esperado")
-        ev_rows = [{"Mercado": k.upper().replace("_"," "),
-                    "P. Modelo": f"{v['prob_modelo_%']}%",
-                    "P. Implícita": f"{v['prob_implicita_%']}%",
-                    "Edge": f"{v['edge_%']:+.1f}%",
-                    f"EV(${stake})": f"${v['ev_$']:+.2f}",
-                    "ROI": f"{v['roi_%']:+.1f}%",
-                    "Señal": v["señal"]}
-                   for k,v in sorted(ev.items(), key=lambda x: x[1]["ev_$"], reverse=True)]
-        df_ev = pd.DataFrame(ev_rows)
-        def color_s(val):
-            if val=="EV+": return "background:#d1e7dd;color:#0f5132;font-weight:700"
-            if val=="EV-": return "background:#f8d7da;color:#842029"
-            return ""
-        st.dataframe(df_ev.style.map(color_s, subset=["Señal"]),
-                     use_container_width=True, hide_index=True)
-        best_k = max(ev, key=lambda k: ev[k]["ev_$"])
-        best = ev[best_k]
-        if best["ev_$"] > 0:
-            st.success(f"Mejor apuesta → **{best_k.upper().replace('_',' ')}** · EV **${best['ev_$']:+.2f}** · ROI **{best['roi_%']:+.1f}%** · Edge **{best['edge_%']:+.1f}%**")
-        else:
-            st.warning("Ningún mercado con EV positivo en estos momios.")
-
-
 # Desde fixture (botón de partido)
 if st.session_state.get("vista_override") and "partido_sel" in st.session_state:
     p = st.session_state["partido_sel"]
