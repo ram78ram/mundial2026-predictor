@@ -344,13 +344,13 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     ]
 
     rows_prob = [{"Mercado": n, "P. Modelo": f"{p}%",
-                  "Momio justo": f"{_fair(p)}",
+                  "Mínimo para valor": f"{_fair(p)}",
                   "¿Cuándo apostar?": f"Si Playdoit da MÁS de {_fair(p)} → 🟢 Valor"}
                  for n, p in mercados_prob]
 
     st.markdown("---")
     st.markdown("#### Probabilidades del modelo")
-    st.caption("**Momio justo** = el mínimo que debe dar Playdoit para que haya valor. Si el momio real es **mayor** → hay EV positivo.")
+    st.caption("**Mínimo para valor** = el mínimo que debe dar Playdoit para que haya valor. Si el momio real es **mayor** → hay EV positivo.")
     st.dataframe(
         _pd.DataFrame(rows_prob).style.map(_color_prob, subset=["P. Modelo"]),
         use_container_width=True, hide_index=True,
