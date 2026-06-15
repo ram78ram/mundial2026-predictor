@@ -349,6 +349,8 @@ def parse_odds(raw: list[dict]) -> list[dict]:
         home = evento.get("home_team", "")
         away = evento.get("away_team", "")
         odds_h = odds_d = odds_a = None
+        over_25 = under_25 = over_15 = under_15 = None
+
         for book in evento.get("bookmakers", [])[:1]:
             for market in book.get("markets", []):
                 if market["key"] == "h2h":
@@ -360,11 +362,23 @@ def parse_odds(raw: list[dict]) -> list[dict]:
                     for out in market.get("outcomes", []):
                         pt = out.get("point", 0)
                         nm = out.get("name", "")
-                        if nm=="Over"  and abs(pt-2.5)<0.1: over_25 = out["price"]
-                        if nm=="Under" and abs(pt-2.5)<0.1: under_25 = out["price"]
-                        if nm=="Over"  and abs(pt-1.5)<0.1: over_15 = out["price"]
-                        if nm=="Under" and abs(pt-1.5)<0.1: under_15 = out["price"]
-        partidos.append({"local":home,"visitante":away,"odd_h":odds_h,"odd_d":odds_d,"odd_a":odds_a,"over_2.5":over_25,"under_2.5":under_25,"over_1.5":over_15,"under_1.5":under_15,"commence":evento.get("commence_time","")})
+                        if nm == "Over"  and abs(pt - 2.5) < 0.1: over_25  = out["price"]
+                        if nm == "Under" and abs(pt - 2.5) < 0.1: under_25 = out["price"]
+                        if nm == "Over"  and abs(pt - 1.5) < 0.1: over_15  = out["price"]
+                        if nm == "Under" and abs(pt - 1.5) < 0.1: under_15 = out["price"]
+
+        partidos.append({
+            "local":      home,
+            "visitante":  away,
+            "odd_h":      odds_h,
+            "odd_d":      odds_d,
+            "odd_a":      odds_a,
+            "over_2.5":   over_25,
+            "under_2.5":  under_25,
+            "over_1.5":   over_15,
+            "under_1.5":  under_15,
+            "commence":   evento.get("commence_time", ""),
+        })
     return partidos
 
 

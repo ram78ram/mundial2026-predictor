@@ -56,6 +56,7 @@ MERCADOS_MAP = {
 def obtener_momios(api_key: str | None = None) -> list[dict]:
     """
     Intenta descargar momios reales. Si no hay API key, usa demos.
+    Los nombres se mantienen en inglés para búsqueda flexible.
     """
     if api_key:
         try:

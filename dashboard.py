@@ -43,6 +43,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Cargar API key desde Streamlit secrets o variable de entorno
 import os
 ODDS_API_KEY = None
 try:
@@ -105,6 +106,7 @@ with st.sidebar:
         home = st.selectbox("Local", equipos, index=equipos.index("Brasil"))
         away_opts = [e for e in equipos if e != home]
         away = st.selectbox("Visitante", away_opts, index=away_opts.index("Argentina") if "Argentina" in away_opts else 0)
+
         st.markdown("### Momios de Playdoit")
         st.caption("Ingresa los momios que ves en Playdoit")
         odd_h  = st.number_input("Local",     1.01, 50.0, 2.10, 0.05)
@@ -125,13 +127,19 @@ with st.sidebar:
             st.session_state["analizador_ready"] = True
 
     else:
+        # Valores por defecto para variables del analizador
         home = "Brasil"; away = "Argentina"
         odd_h = 2.10; odd_d = 3.20; odd_a = 3.50
         odd_o25 = 1.90; odd_u25 = 1.95; odd_o15 = 1.35
         odd_btts_si = 1.75; odd_btts_no = 2.05
         odd_dc1X = 1.30; odd_dcX2 = 1.40; stake = 100
+
         st.markdown("### Filtrar fixture")
-        filtro_estado = st.multiselect("Estado",["jugado","hoy","proximo"],default=["hoy","proximo"])
+        filtro_estado = st.multiselect(
+            "Estado",
+            ["jugado", "hoy", "proximo"],
+            default=["hoy", "proximo"],
+        )
         grupos_disp = sorted(set(p["grupo"] for p in all_matches))
         filtro_grupo = st.multiselect("Grupo", grupos_disp, default=grupos_disp)
         solo_con_modelo = st.toggle("Solo equipos con modelo", value=False)
@@ -195,12 +203,7 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
                 st.markdown(f'Grupo **{p["grupo"]}**<br>{estado_tag}<br><small style="color:#888">{p["sede"]}</small>', unsafe_allow_html=True)
 
             with col_match:
-                # Solo mostrar marcador si el partido ya terminó (fecha pasada)
-                from datetime import date as _date
-                partido_terminado = (p["estado"] == "jugado" and
-                                     _date.fromisoformat(p["fecha"]) < _date.today())
-
-                if p["resultado"] and partido_terminado:
+                if p["resultado"]:
                     gh, ga = p["resultado"]
                     st.markdown(
                         f'<div style="text-align:center;padding:8px 0">'
@@ -222,9 +225,7 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
 
             with col_btn:
                 if p["tiene_modelo"]:
-                    from datetime import date as _date2
-                    es_hoy = _date2.fromisoformat(p["fecha"]) == _date2.today()
-                    lbl = "Ver retro-análisis" if (p["resultado"] and not es_hoy) else "Ver predicción"
+                    lbl = "Ver predicción" if not p["resultado"] else "Ver retro-análisis"
                     if st.button(lbl, key=f"btn_{p['fecha']}_{p['local']}_{p['visitante']}"):
                         st.session_state["partido_sel"] = p
                         st.session_state["vista_override"] = True
@@ -267,26 +268,10 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
 
     ovr = round((1/momios.get('local',2)+1/momios.get('empate',3)+1/momios.get('visitante',3.5)-1)*100,1)
     st.caption(f"λ {home}: **{lh}** · λ {away}: **{la}** · Total esperado: **{round(lh+la,2)}** goles · Overround: **{ovr}%**")
+
+    # ── Tabla de probabilidades puras + momio justo
     import pandas as _pd
-    def _imp(o): return round(100/o,1) if o>1 else 0
-    def _etag(pm,o):
-        if o<=1: return "—"
-        return "✅ EV+" if (pm/100*o-1)>0 else "❌ EV-"
-    def _ec(pm,o): return f"{round(pm-_imp(o),1):+.1f}%" if o>1 else "—"
-    rows_m=[
-        (f"🏠 {home} gana",      mk["1x2"]["local"]),
-        ("🤝 Empate",             mk["1x2"]["empate"]),
-        (f"✈️ {away} gana",      mk["1x2"]["visitante"]),
-        ("⚽ Over 2.5 goles",     mk["over_under"]["over_2.5"]),
-        ("⚽ Under 2.5 goles",    mk["over_under"]["under_2.5"]),
-        ("⚽ Over 1.5 goles",     mk["over_under"]["over_1.5"]),
-        ("⚽ Under 1.5 goles",    mk["over_under"]["under_1.5"]),
-        ("🎯 Ambos anotan Sí",    mk["btts"]["si"]),
-        ("🎯 Ambos anotan No",    mk["btts"]["no"]),
-        (f"🔵 {home} o Empate",   mk["doble_chance"]["1X"]),
-        (f"🔴 {away} o Empate",   mk["doble_chance"]["X2"]),
-        (f"⚡ {home} o {away}",   mk["doble_chance"]["12"]),
-    ]
+
     def _fair(p): return round(100/p, 2) if p > 0 else 0
     def _color_prob(v):
         try:
@@ -295,11 +280,34 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
             if val >= 40: return "background:#fff3cd;color:#664d03;font-weight:600"
         except: pass
         return ""
-    df_m = _pd.DataFrame([{"Mercado": n, "P. Modelo": f"{p}%", "Momio mínimo Playdoit": f"{_fair(p)}", "Señal": "🟢 Si dan MÁS → valor"} for n, p in rows_m])
+
+    mercados_prob = [
+        (f"🏠 {home} gana",        mk["1x2"]["local"]),
+        ("🤝 Empate",               mk["1x2"]["empate"]),
+        (f"✈️ {away} gana",        mk["1x2"]["visitante"]),
+        ("⚽ Over 2.5 goles",       mk["over_under"]["over_2.5"]),
+        ("⚽ Under 2.5 goles",      mk["over_under"]["under_2.5"]),
+        ("⚽ Over 1.5 goles",       mk["over_under"]["over_1.5"]),
+        ("⚽ Under 1.5 goles",      mk["over_under"]["under_1.5"]),
+        ("🎯 Ambos anotan (Sí)",    mk["btts"]["si"]),
+        ("🎯 Ambos anotan (No)",    mk["btts"]["no"]),
+        (f"🔵 {home} o Empate",     mk["doble_chance"]["1X"]),
+        (f"🔴 {away} o Empate",     mk["doble_chance"]["X2"]),
+        (f"⚡ {home} o {away}",     mk["doble_chance"]["12"]),
+    ]
+
+    rows_prob = [{"Mercado": n, "P. Modelo": f"{p}%",
+                  "Momio justo": f"{_fair(p)}",
+                  "¿Cuándo apostar?": f"Si Playdoit da MÁS de {_fair(p)} → 🟢 Valor"}
+                 for n, p in mercados_prob]
+
     st.markdown("---")
     st.markdown("#### Probabilidades del modelo")
-    st.caption("Si el momio de Playdoit es **mayor** al Momio mínimo → hay valor (EV+).")
-    st.dataframe(df_m.style.map(_color_prob, subset=["P. Modelo"]), use_container_width=True, hide_index=True)
+    st.caption("**Momio justo** = el mínimo que debe dar Playdoit para que haya valor. Si el momio real es **mayor** → hay EV positivo.")
+    st.dataframe(
+        _pd.DataFrame(rows_prob).style.map(_color_prob, subset=["P. Modelo"]),
+        use_container_width=True, hide_index=True,
+    )
     st.markdown("---")
 
     # Métricas 1X2
@@ -416,6 +424,85 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_mk, use_container_width=True)
 
+    # ── Tendencias y sugerencias (estilo Betmines)
+    st.markdown("---")
+    st.markdown("### Tendencias y sugerencias")
+    try:
+        from team_history import get_match_report
+
+        rep_full = get_match_report(home, away)
+        ht = rep_full["home_trends"]
+        at = rep_full["away_trends"]
+        hl = rep_full["home_local_trends"]
+        av = rep_full["away_visit_trends"]
+
+        # ── Sugerencias del partido
+        all_sugg = rep_full["match_suggestions"] +                    rep_full["home_suggestions"][:3] +                    rep_full["away_suggestions"][:3]
+
+        if all_sugg:
+            st.markdown("#### 💡 Sugerencias automáticas")
+            for s in sorted(all_sugg, key=lambda x: x["fuerza"], reverse=True)[:8]:
+                stars = "⭐" * s["fuerza"]
+                color = "#d1e7dd" if s["fuerza"] == 3 else "#fff3cd" if s["fuerza"] == 2 else "#f8f9fa"
+                txt_color = "#0f5132" if s["fuerza"] == 3 else "#664d03" if s["fuerza"] == 2 else "#495057"
+                st.markdown(
+                    f'<div style="background:{color};color:{txt_color};padding:8px 14px;'
+                    f'border-radius:8px;margin-bottom:6px;font-size:14px">'
+                    f'{stars} <b>[{s["mercado"]}]</b> {s["desc"]}</div>',
+                    unsafe_allow_html=True
+                )
+
+        st.markdown("---")
+
+        # ── Comparativa de tendencias
+        st.markdown("#### 📊 Comparativa de tendencias (últimos 10 partidos)")
+        col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
+
+        def _trend_row(label, h_val, a_val, suffix="%"):
+            h_color = "#198754" if h_val >= a_val else "#dc3545"
+            a_color = "#198754" if a_val >= h_val else "#dc3545"
+            with col_t1:
+                st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+            with col_t2:
+                st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
+                           unsafe_allow_html=True)
+            with col_t3:
+                st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+
+        with col_t1: st.markdown(f'<div style="text-align:right;font-weight:700;padding:4px 0">{home}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:11px">vs</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-weight:700;padding:4px 0">{away}</div>', unsafe_allow_html=True)
+
+        _trend_row("Victorias", ht.get("win_%",0), at.get("win_%",0))
+        _trend_row("Over 2.5", ht.get("over_2.5_%",0), at.get("over_2.5_%",0))
+        _trend_row("Over 1.5", ht.get("over_1.5_%",0), at.get("over_1.5_%",0))
+        _trend_row("BTTS Sí", ht.get("btts_%",0), at.get("btts_%",0))
+        _trend_row("Clean Sheet", ht.get("cs_%",0), at.get("cs_%",0))
+        _trend_row("Siempre marca", ht.get("scored_%",0), at.get("scored_%",0))
+        _trend_row("Prom. GF", ht.get("avg_gf",0), at.get("avg_gf",0), "")
+        _trend_row("Prom. GC", ht.get("avg_gc",0), at.get("avg_gc",0), "")
+        _trend_row("Prom. total", ht.get("avg_total",0), at.get("avg_total",0), "")
+
+        # Racha actual
+        mapa_r = {"V":"victorias","E":"empates","D":"derrotas"}
+        h_racha = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
+        a_racha = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0;font-weight:600">{h_racha}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Racha actual</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0;font-weight:600">{a_racha}</div>', unsafe_allow_html=True)
+
+        h_invicto = f"{ht.get('sin_perder',0)} sin perder"
+        a_invicto = f"{at.get('sin_perder',0)} sin perder"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0">{h_invicto}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Invicto</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0">{a_invicto}</div>', unsafe_allow_html=True)
+
+    except Exception as e:
+        st.caption(f"Tendencias no disponibles: {e}")
 
     # ── Historial de equipos
     st.markdown("---")
@@ -428,77 +515,47 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         def _render_history(equipo, col):
             with col:
                 st.markdown(f"**{equipo}**")
-                from team_history import get_team_matches, compute_stats
-                todos    = get_team_matches(equipo, 10)
-                locales  = [m for m in get_team_matches(equipo, 30) if m["condicion"]=="Local"][:5]
-                visitas  = [m for m in get_team_matches(equipo, 30) if m["condicion"]=="Visitante"][:5]
-
-                def _rows(lst):
-                    if not lst: return []
-                    gf_total = sum(m["gf"] for m in lst)
-                    gc_total = sum(m["gc"] for m in lst)
-                    n = len(lst)
-                    rows = []
-                    acum_gf, acum_gc = 0, 0
-                    for m in lst:
-                        acum_gf += m["gf"]
-                        acum_gc += m["gc"]
-                        idx = lst.index(m) + 1
-                        rows.append({
-                            "Año":      m["año"],
-                            "Rival":    m["rival"],
-                            "Cond.":    "🏠" if m["condicion"]=="Local" else "✈️",
-                            "Marcador": m["marcador"],
-                            "GF":       m["gf"],
-                            "GC":       m["gc"],
-                            "Res.":     ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
-                            "Goleadores": m["goleadores"][:35] if m["goleadores"]!="—" else "—",
-                        })
-                    # Fila de promedio al final
-                    rows.append({
-                        "Año": "—", "Rival": f"PROMEDIO ({n} partidos)", "Cond.": "📊",
-                        "Marcador": f"{round(gf_total/n,2)}-{round(gc_total/n,2)}",
-                        "GF": round(gf_total/n, 2),
-                        "GC": round(gc_total/n, 2),
-                        "Res.": f"Total/partido: {round((gf_total+gc_total)/n,2)}",
-                        "Goleadores": f"GF: {gf_total}  GC: {gc_total}",
-                    })
-                    return rows
-
-                def _stats_row(lst):
-                    s = compute_stats(lst)
-                    if not s: return
-                    c1,c2,c3,c4 = st.columns(4)
-                    c1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
-                    c2.metric("Prom. GF", s["promedio_gf"])
-                    c3.metric("Prom. GC", s["promedio_gc"])
-                    c4.metric("Total/partido", s["promedio_total"])
-
-                t1, t2, t3 = st.tabs([f"Últimos {len(todos)}", "🏠 Como local", "✈️ Como visitante"])
-
-                with t1:
-                    _stats_row(todos)
-                    if todos:
-                        st.dataframe(_pd2.DataFrame(_rows(todos)), use_container_width=True, hide_index=True, height=310)
-
-                with t2:
-                    _stats_row(locales)
-                    if locales:
-                        st.dataframe(_pd2.DataFrame(_rows(locales)), use_container_width=True, hide_index=True)
+                rep = get_full_report(equipo)
+                tab_gen, tab_loc = st.tabs([f"Últimos {len(rep['ultimos_10'])} partidos", "Como local"])
+                with tab_gen:
+                    s = rep["stats_10"]
+                    if s:
+                        m1,m2,m3,m4 = st.columns(4)
+                        m1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
+                        m2.metric("Prom. GF", s["promedio_gf"])
+                        m3.metric("Prom. GC", s["promedio_gc"])
+                        m4.metric("Prom. total", s["promedio_total"])
+                    if rep["ultimos_10"]:
+                        rows = [{"Año": m["año"], "Rival": m["rival"],
+                                 "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
+                                 "Marcador": m["marcador"],
+                                 "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                 "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                for m in rep["ultimos_10"]]
+                        st.dataframe(_pd2.DataFrame(rows), use_container_width=True, hide_index=True, height=300)
+                with tab_loc:
+                    sl = rep["stats_local"]
+                    if sl:
+                        m1,m2,m3 = st.columns(3)
+                        m1.metric("V/E/D local", f"{sl['victorias']}/{sl['empates']}/{sl['derrotas']}")
+                        m2.metric("Prom. GF local", sl["promedio_gf"])
+                        m3.metric("Prom. GC local", sl["promedio_gc"])
+                    if rep["local_5"]:
+                        rows_l = [{"Año": m["año"], "Rival": m["rival"],
+                                   "Marcador": m["marcador"],
+                                   "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                   "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                  for m in rep["local_5"]]
+                        st.dataframe(_pd2.DataFrame(rows_l), use_container_width=True, hide_index=True)
                     else:
                         st.caption("Sin datos como local")
-
-                with t3:
-                    _stats_row(visitas)
-                    if visitas:
-                        st.dataframe(_pd2.DataFrame(_rows(visitas)), use_container_width=True, hide_index=True)
-                    else:
-                        st.caption("Sin datos como visitante")
 
         _render_history(home, col_h1)
         _render_history(away, col_h2)
     except Exception as e:
-        st.warning(f"Historial no disponible: {e}")
+        st.caption(f"Historial no disponible: {e}")
+
+
 
 # Desde fixture (botón de partido)
 if st.session_state.get("vista_override") and "partido_sel" in st.session_state:
@@ -506,18 +563,56 @@ if st.session_state.get("vista_override") and "partido_sel" in st.session_state:
     h_name = TEAM_MAP.get(p["local"], p["local"])
     a_name = TEAM_MAP.get(p["visitante"], p["visitante"])
 
-    st.markdown("---")
     if st.button("← Volver al fixture"):
         st.session_state.pop("partido_sel", None)
         st.session_state.pop("vista_override", None)
         st.rerun()
+    else:
+        # Intentar cargar momios reales desde Odds API
+        momios_live = None
+        if ODDS_API_KEY:
+            try:
+                from alerts import obtener_momios
+                from monte_carlo import EN_TO_ES
+                ES_TO_EN = {v: k for k, v in EN_TO_ES.items()}
+                h_en = ES_TO_EN.get(h_name, h_name)
+                a_en = ES_TO_EN.get(a_name, a_name)
+                partidos_odds = obtener_momios(ODDS_API_KEY)
+                for po in partidos_odds:
+                    ph = po["local"].lower()
+                    pa = po["visitante"].lower()
+                    h_match = h_en.lower() in ph or ph in h_en.lower()
+                    a_match = a_en.lower() in pa or pa in a_en.lower()
+                    h_match2 = h_en.lower() in pa or pa in h_en.lower()
+                    a_match2 = a_en.lower() in ph or ph in a_en.lower()
+                    if (h_match and a_match) or (h_match2 and a_match2):
+                        momios_live = {
+                            "local":     po.get("odd_h") or 2.0,
+                            "empate":    po.get("odd_d") or 3.2,
+                            "visitante": po.get("odd_a") or 3.6,
+                            "over_2.5":  po.get("over_2.5") or 1.90,
+                            "under_2.5": po.get("under_2.5") or 1.95,
+                            "over_1.5":  po.get("over_1.5") or 1.35,
+                            "btts_si":   1.80,
+                            "btts_no":   2.00,
+                            "dc_1X":     1.30,
+                            "dc_X2":     1.40,
+                        }
+                        break
+            except Exception as e:
+                pass
 
-    momios_default = {"local":2.0,"empate":3.2,"visitante":3.6,
-                      "over_2.5":1.90,"under_2.5":1.95,
-                      "btts_si":1.75,"btts_no":2.05,"dc_1X":1.30,"dc_X2":1.40}
+        momios_default = momios_live or {"local":2.0,"empate":3.2,"visitante":3.6,
+                          "over_2.5":1.90,"under_2.5":1.95,
+                          "btts_si":1.75,"btts_no":2.05,"dc_1X":1.30,"dc_X2":1.40}
 
-    mostrar_analisis(h_name, a_name, momios_default, stake=100,
-                     resultado_real=p.get("resultado"))
+        if momios_live:
+            st.success(f"Momios en vivo cargados · Local: {momios_live['local']} · Empate: {momios_live['empate']} · Visitante: {momios_live['visitante']}")
+        else:
+            st.info("Momios por defecto — sin datos en vivo para este partido")
+
+        mostrar_analisis(h_name, a_name, momios_default, stake=100,
+                         resultado_real=p.get("resultado"))
 
 # Desde sidebar
 elif vista == "Analizador de partido":
@@ -529,19 +624,14 @@ elif vista == "Analizador de partido":
     else:
         st.markdown("## Analizador de partido")
         st.info("👈 Selecciona los equipos, ingresa los momios de Playdoit y presiona **Analizar partido**")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**¿Cómo usar?**")
-            st.markdown("1. Elige **Local** y **Visitante**")
-            st.markdown("2. Abre Playdoit y copia los momios")
-            st.markdown("3. Ingrésalos en el panel izquierdo")
-            st.markdown("4. Presiona **🔍 Analizar partido**")
-        with col2:
-            st.markdown("**¿Qué te dice el sistema?**")
-            st.markdown("- Probabilidad real de cada mercado")
-            st.markdown("- Momio mínimo para que haya valor")
-            st.markdown("- Marcadores más probables")
-            st.markdown("- Historial de ambos equipos")
+        st.markdown("""
+        **¿Cómo usar?**
+        1. Elige el equipo **Local** y **Visitante**
+        2. Abre Playdoit y copia los momios de cada mercado
+        3. Ingresa los momios en el panel izquierdo
+        4. Presiona **Analizar partido**
+        5. El sistema te dice qué mercados tienen valor real
+        """)
 
 st.markdown("<br><center><small>Modelo de Poisson · Datos estadísticos históricos · No garantiza resultados</small></center>", unsafe_allow_html=True)
 
