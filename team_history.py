@@ -1,6 +1,3 @@
-"""
-team_history.py - Historial real de equipos desde Mundiales 2018/2022/2026
-"""
 import requests, json
 from pathlib import Path
 
@@ -40,44 +37,63 @@ def _load_tournament(year):
         matches = [m for m in r.json().get("matches",[]) if m.get("score",{}).get("ft")]
         cache.write_text(json.dumps(matches, ensure_ascii=False))
         return matches
-    except: return []
+    except:
+        return []
 
 def get_team_matches(team_es, max_total=10):
     team_en = ES_TO_EN.get(team_es, team_es)
     all_matches = []
     for year in ["2026","2022","2018"]:
         for m in _load_tournament(year):
-            t1,t2 = m["team1"],m["team2"]
-            is_home = t1==team_en or team_en.lower() in t1.lower()
-            is_away = t2==team_en or team_en.lower() in t2.lower()
-            if not (is_home or is_away): continue
+            t1, t2 = m["team1"], m["team2"]
+            is_home = t1 == team_en or team_en.lower() in t1.lower()
+            is_away = t2 == team_en or team_en.lower() in t2.lower()
+            if not (is_home or is_away):
+                continue
             ft = m["score"]["ft"]
             gf = ft[0] if is_home else ft[1]
             gc = ft[1] if is_home else ft[0]
             rival = NAME_MAP.get(t2 if is_home else t1, t2 if is_home else t1)
-            res = "V" if gf>gc else ("E" if gf==gc else "D")
-            goles = m.get("goals1" if is_home else "goals2",[])
-            scorers = ", ".join(f"{g["name"]} ({g["minute"]})" for g in goles if "name" in g)
-            all_matches.append({"año":year,"fecha":m["date"],"condicion":"Local" if is_home else "Visitante",
-                "rival":rival,"gf":gf,"gc":gc,"resultado":res,"marcador":f"{gf}-{gc}",
-                "goleadores":scorers or "—","ronda":m.get("round","Grupo")})
+            res = "V" if gf > gc else ("E" if gf == gc else "D")
+            goles = m.get("goals1" if is_home else "goals2", [])
+            scorers = ", ".join(f"{g['name']} ({g['minute']}')" for g in goles if "name" in g)
+            all_matches.append({
+                "ano": year, "fecha": m["date"],
+                "condicion": "Local" if is_home else "Visitante",
+                "rival": rival, "gf": gf, "gc": gc,
+                "resultado": res, "marcador": f"{gf}-{gc}",
+                "goleadores": scorers if scorers else "—",
+                "ronda": m.get("round", "Grupo"),
+            })
     all_matches.sort(key=lambda x: x["fecha"], reverse=True)
     return all_matches[:max_total]
 
 def compute_stats(matches):
-    if not matches: return {}
-    n=len(matches); gf=sum(m["gf"] for m in matches); gc=sum(m["gc"] for m in matches)
-    v=sum(1 for m in matches if m["resultado"]=="V")
-    e=sum(1 for m in matches if m["resultado"]=="E")
-    d=sum(1 for m in matches if m["resultado"]=="D")
-    return {"pj":n,"victorias":v,"empates":e,"derrotas":d,"goles_favor":gf,"goles_contra":gc,
-            "promedio_gf":round(gf/n,2),"promedio_gc":round(gc/n,2),
-            "promedio_total":round((gf+gc)/n,2),
-            "clean_sheets":sum(1 for m in matches if m["gc"]==0),
-            "forma":"".join(m["resultado"] for m in reversed(matches[-5:]))}
+    if not matches:
+        return {}
+    n = len(matches)
+    gf = sum(m["gf"] for m in matches)
+    gc = sum(m["gc"] for m in matches)
+    v = sum(1 for m in matches if m["resultado"] == "V")
+    e = sum(1 for m in matches if m["resultado"] == "E")
+    d = sum(1 for m in matches if m["resultado"] == "D")
+    return {
+        "pj": n, "victorias": v, "empates": e, "derrotas": d,
+        "goles_favor": gf, "goles_contra": gc,
+        "promedio_gf": round(gf/n, 2),
+        "promedio_gc": round(gc/n, 2),
+        "promedio_total": round((gf+gc)/n, 2),
+        "clean_sheets": sum(1 for m in matches if m["gc"] == 0),
+        "forma": "".join(m["resultado"] for m in reversed(matches[-5:])),
+    }
 
 def get_full_report(team_es):
     all_10 = get_team_matches(team_es, 10)
-    local_all = [m for m in get_team_matches(team_es, 30) if m["condicion"]=="Local"]
-    return {"equipo":team_es,"ultimos_10":all_10,"stats_10":compute_stats(all_10),
-            "local_5":local_all[:5],"stats_local":compute_stats(local_all[:5])}
+    local_all = [m for m in get_team_matches(team_es, 30) if m["condicion"] == "Local"]
+    return {
+        "equipo": team_es,
+        "ultimos_10": all_10,
+        "stats_10": compute_stats(all_10),
+        "local_5": local_all[:5],
+        "stats_local": compute_stats(local_all[:5]),
+    }
