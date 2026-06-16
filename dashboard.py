@@ -28,18 +28,65 @@ if "last_sync" not in st.session_state:
 
 st.markdown("""
 <style>
-.metric-card{background:var(--secondary-background-color,#f0f2f6);border-radius:10px;padding:14px 16px;text-align:center}
-.metric-val{font-size:1.8rem;font-weight:700;margin:4px 0}
-.metric-lbl{font-size:.75rem;color:#888;text-transform:uppercase;letter-spacing:.05em}
-.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:600}
-.tag-pos{background:#d1e7dd;color:#0f5132}
-.tag-neg{background:#f8d7da;color:#842029}
-.tag-hoy{background:#fff3cd;color:#664d03}
-.tag-jugado{background:#e2e3e5;color:#41464b}
-.tag-proximo{background:#cfe2ff;color:#084298}
-.partido-card{border:1px solid #dee2e6;border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer}
-.partido-card:hover{background:#f8f9fa}
-.match-score{font-size:1.1rem;font-weight:700;color:#212529}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;900&display=swap');
+:root{--cyan:#00E5FF;--cyan-dim:#00B8CC;--cyan-glow:rgba(0,229,255,0.12);--navy:#0D1B2A;--navy2:#112236;--navy3:#162C44;--navy4:#1D3A57;--border:rgba(0,229,255,0.18);--text:#E8F4FD;--text-dim:#7FA8C9;--green:#00E676;--red:#FF5252;--gold:#FFD740;}
+.stApp{background:var(--navy)!important;color:var(--text)!important;font-family:'Inter',sans-serif!important;}
+[data-testid='stSidebar']{background:var(--navy2)!important;border-right:1px solid var(--border)!important;}
+[data-testid='stSidebar'] *{color:var(--text)!important;}
+[data-testid='stSidebar'] label{color:var(--text-dim)!important;font-size:.75rem!important;text-transform:uppercase!important;letter-spacing:.08em!important;font-weight:600!important;}
+.stButton>button{background:linear-gradient(135deg,var(--cyan),var(--cyan-dim))!important;color:#000!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;font-size:.9rem!important;letter-spacing:.08em!important;text-transform:uppercase!important;border:none!important;border-radius:6px!important;transition:all .2s!important;box-shadow:0 0 16px var(--cyan-glow)!important;}
+.stButton>button:hover{transform:translateY(-2px)!important;box-shadow:0 0 28px rgba(0,229,255,.3)!important;}
+.stSelectbox>div>div,.stNumberInput>div>div>input,.stTextInput>div>div>input{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:6px!important;color:var(--text)!important;}
+.metric-card{background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid var(--border);border-radius:10px;padding:18px 14px;text-align:center;transition:all .25s ease;position:relative;overflow:hidden;}
+.metric-card::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
+.metric-card:hover{border-color:var(--cyan);box-shadow:0 4px 24px var(--cyan-glow);transform:translateY(-3px);}
+.metric-val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:900;color:var(--cyan);margin:6px 0 3px;line-height:1;}
+.metric-lbl{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
+.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+.tag-pos{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.tag-neg{background:rgba(255,82,82,.12);color:var(--red);border:1px solid rgba(255,82,82,.25);}
+.tag-hoy{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid var(--border);}
+.tag-jugado{background:rgba(255,255,255,.06);color:var(--text-dim);border:1px solid rgba(255,255,255,.1);}
+.tag-proximo{background:rgba(255,215,64,.1);color:var(--gold);border:1px solid rgba(255,215,64,.2);}
+.partido-card{border:1px solid rgba(0,229,255,.1);border-radius:10px;padding:14px 18px;margin-bottom:8px;background:var(--navy3);transition:all .2s;}
+.partido-card:hover{border-color:var(--cyan);background:var(--navy4);box-shadow:0 4px 20px var(--cyan-glow);}
+.match-score{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;color:var(--cyan);letter-spacing:.05em;}
+h1,h2,h3{font-family:'Barlow Condensed',sans-serif!important;font-weight:900!important;color:var(--text)!important;letter-spacing:-.01em!important;}
+h1{font-size:2.5rem!important;}
+h2{font-size:1.9rem!important;}
+h3{font-size:1.4rem!important;color:var(--cyan)!important;}
+p,[data-testid='stMarkdownContainer'] p{color:var(--text)!important;line-height:1.6!important;}
+small,caption,[data-testid='stCaptionContainer']{color:var(--text-dim)!important;}
+[data-testid='stDataFrame']{border:1px solid var(--border)!important;border-radius:10px!important;overflow:hidden!important;}
+[data-testid='stDataFrame'] table{background:var(--navy3)!important;}
+[data-testid='stDataFrame'] th{background:var(--navy4)!important;color:var(--cyan)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;text-transform:uppercase!important;font-size:.76rem!important;letter-spacing:.08em!important;border-bottom:1px solid var(--border)!important;padding:10px 12px!important;}
+[data-testid='stDataFrame'] td{color:var(--text)!important;border-bottom:1px solid rgba(0,229,255,.06)!important;padding:9px 12px!important;}
+[data-testid='stDataFrame'] tr:hover td{background:var(--cyan-glow)!important;}
+.stTabs [data-baseweb='tab-list']{background:var(--navy3)!important;border-bottom:2px solid var(--border)!important;border-radius:8px 8px 0 0!important;gap:4px!important;padding:0 8px!important;}
+.stTabs [data-baseweb='tab']{background:transparent!important;color:var(--text-dim)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;font-size:.85rem!important;text-transform:uppercase!important;letter-spacing:.06em!important;border:none!important;border-bottom:2px solid transparent!important;margin-bottom:-2px!important;transition:all .2s!important;padding:10px 16px!important;border-radius:6px 6px 0 0!important;}
+.stTabs [data-baseweb='tab']:hover{color:var(--text)!important;background:rgba(0,229,255,.06)!important;}
+.stTabs [aria-selected='true']{color:var(--cyan)!important;border-bottom:2px solid var(--cyan)!important;background:var(--cyan-glow)!important;}
+[data-testid='stRadio'] label{color:var(--text-dim)!important;font-size:.8rem!important;font-weight:600!important;transition:color .15s!important;}
+[data-testid='stRadio'] label:hover{color:var(--cyan)!important;}
+[data-testid='stMetric']{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:10px!important;padding:14px!important;}
+[data-testid='stMetricLabel']{color:var(--text-dim)!important;font-size:.72rem!important;text-transform:uppercase!important;letter-spacing:.08em!important;font-weight:600!important;}
+[data-testid='stMetricValue']{color:var(--cyan)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:900!important;font-size:1.8rem!important;}
+[data-testid='stMetricDelta']{font-size:.8rem!important;font-weight:600!important;}
+[data-testid='stExpander']{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:10px!important;}
+[data-testid='stExpander'] summary{color:var(--text)!important;font-weight:600!important;}
+.stSuccess{background:rgba(0,230,118,.08)!important;border-left:3px solid var(--green)!important;border-radius:6px!important;color:var(--text)!important;}
+.stWarning{background:rgba(255,215,64,.08)!important;border-left:3px solid var(--gold)!important;border-radius:6px!important;}
+.stInfo{background:rgba(0,229,255,.08)!important;border-left:3px solid var(--cyan)!important;border-radius:6px!important;}
+.stError{background:rgba(255,82,82,.08)!important;border-left:3px solid var(--red)!important;border-radius:6px!important;}
+[data-testid='stAlert']{color:var(--text)!important;}
+hr{border-color:var(--border)!important;opacity:.6!important;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--navy2);}
+::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.main .block-container>div>div{animation:fadeInUp .28s ease both;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--cyan-glow)}50%{box-shadow:0 0 0 6px transparent}}
+.metric-card:hover::after{animation:pulse 1.5s infinite;}
 </style>
 """, unsafe_allow_html=True)
 
