@@ -625,6 +625,36 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
 
     # ── Historial de equipos
     st.markdown("---")
+    # H2H
+    st.markdown("---")
+    st.markdown("### ⚔️ Head to Head")
+    try:
+        from team_history import get_h2h
+        import pandas as _pd4
+        h2h = get_h2h(home, away)
+        s = h2h["stats"]
+        if s.get("total", 0) > 0:
+            c1,c2,c3,c4,c5 = st.columns(5)
+            c1.metric("Partidos H2H", s["total"])
+            c2.metric(f"✅ {home}", s.get(home+"_V", 0))
+            c3.metric("🤝 Empates", s.get("empates", 0))
+            c4.metric(f"✅ {away}", s.get(away+"_V", 0))
+            c5.metric("Dominante", s.get("dominante","—"))
+            col_h1,col_h2,col_h3 = st.columns(3)
+            col_h1.metric("Over 2.5 H2H", f"{s.get('over_2.5_%',0)}%")
+            col_h2.metric("BTTS H2H", f"{s.get('btts_%',0)}%")
+            col_h3.metric("Prom. goles", s.get("avg_total",0))
+            rows_h2h = [{"Fecha": m["fecha"], "Torneo": m["torneo"],
+                         "Marcador": m["marcador"],
+                         "Ganador": ("✅ " if m["ganador"]==home else "❌ " if m["ganador"]==away else "🤝 ")+m["ganador"],
+                         "Ronda": m["ronda"]}
+                        for m in h2h["partidos"]]
+            st.dataframe(_pd4.DataFrame(rows_h2h), use_container_width=True, hide_index=True)
+        else:
+            st.info(f"Sin enfrentamientos directos registrados entre {home} y {away}")
+    except Exception as e:
+        st.caption(f"H2H no disponible: {e}")
+
     st.markdown("### Historial de partidos")
     col_h1, col_h2 = st.columns(2)
     try:
