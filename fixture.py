@@ -167,9 +167,9 @@ def get_fixture_for_dashboard():
     result = []
     for p in FIXTURE:
         fd = date.fromisoformat(p["fecha"])
-        if fd < TODAY:
+        if fd.isoformat() < TODAY:
             estado = "jugado"
-        elif fd == TODAY:
+        elif fd.isoformat() == TODAY:
             estado = "hoy"
         else:
             estado = "proximo"
