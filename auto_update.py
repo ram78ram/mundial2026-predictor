@@ -16,6 +16,7 @@ import os
 import time
 from pathlib import Path
 from datetime import datetime, timedelta
+import pytz
 
 # ── Fuente de datos
 SOURCE_URL = "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2026/worldcup.json"
@@ -126,7 +127,7 @@ def patch_fixture(dry_run: bool = False) -> list[str]:
     changes = []
 
     from datetime import date
-    today = date.today().isoformat()
+    today = datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d')
     
     for (local, visitante), score in live.items():
         if score is None:

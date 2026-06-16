@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from datetime import date, datetime
+import pytz
 from predictor import Predictor, DEMO_STATS
 from markets import all_markets, ev_market
 from stats_engine import compute_lambdas
@@ -110,7 +111,7 @@ all_matches = get_fixture_for_dashboard()
 # ─────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## ⚽ Mundial 2026")
-    st.caption(f"Hoy: {date.today().strftime('%d %b %Y')}")
+    st.caption(f"Hoy: {datetime.now(pytz.timezone('America/Mexico_City')).strftime('%d %b %Y')}")
 
     # ── Estado de sincronización
     if st.session_state.get("sync_error"):
@@ -232,7 +233,7 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
     for fecha, grupo_iter in groupby(mostrar_sorted, key=lambda x: x["fecha"]):
         partidos_fecha = list(grupo_iter)
         fd = date.fromisoformat(fecha)
-        if fd == date.today():
+        if fd.isoformat() == datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d'):
             st.markdown(f"### Hoy — {fd.strftime('%d %b %Y')}")
         else:
             st.markdown(f"### {fd.strftime('%A %d %b %Y').capitalize()}")
