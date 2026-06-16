@@ -6,7 +6,8 @@ Incluye partidos jugados (con resultado real) y próximos.
 Los equipos del fixture se mapean a DEMO_STATS cuando hay coincidencia.
 """
 
-from datetime import date
+from datetime import date, datetime
+import pytz
 
 # ── Resultado real: None = por jugar, (h, a) = marcador final
 FIXTURE = [
@@ -155,7 +156,7 @@ TEAM_MAP = {
     "Nueva Zelanda": "Nueva Zelanda",
 }
 
-TODAY = date.today()
+TODAY = datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d')
 
 def get_fixture_for_dashboard():
     """
