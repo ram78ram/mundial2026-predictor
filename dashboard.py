@@ -104,6 +104,12 @@ try:
 except:
     ODDS_API_KEY = os.getenv("ODDS_API_KEY")
 
+API_FOOTBALL_KEY = None
+try:
+    API_FOOTBALL_KEY = st.secrets['API_FOOTBALL_KEY']
+except:
+    API_FOOTBALL_KEY = os.getenv('API_FOOTBALL_KEY')
+
 @st.cache_resource
 def get_predictor():
     return Predictor()
@@ -745,16 +751,34 @@ Maximo 350 palabras. Se directo y usa los datos.'''
         def _render_history(equipo, col):
             with col:
                 st.markdown(f'**{equipo}**')
-                from team_history import get_team_matches, compute_stats
-                todos   = get_team_matches(equipo, 10)
-                locales = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Local'][:5]
-                visitas = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Visitante'][:5]
+                try:
+                    if API_FOOTBALL_KEY:
+                        from api_football import APIFootball
+                        _api = APIFootball(API_FOOTBALL_KEY)
+                        todos   = _api.get_last_matches(equipo, 10)
+                        locales = _api.get_last_matches(equipo, 5, venue='home')
+                        visitas = _api.get_last_matches(equipo, 5, venue='away')
+                        for m in todos+locales+visitas:
+                            if 'año' not in m: m['año'] = m.get('fecha','')[:4]
+                        fuente = '📡 API-Football'
+                    else:
+                        raise Exception('sin key')
+                except:
+                    from team_history import get_team_matches
+                    todos   = get_team_matches(equipo, 10)
+                    locales = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Local'][:5]
+                    visitas = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Visitante'][:5]
+                    fuente = '📚 Mundiales históricos'
+                from team_history import compute_stats
+                import pandas as _pd2
+                st.caption(fuente)
                 def _rows(lst):
-                    return [{'Año': m['año'], 'Rival': m['rival'],
+                    return [{'Año': m.get('año', m.get('fecha','')[:4]),
+                             'Liga': m.get('liga', m.get('torneo','—'))[:20],
+                             'Rival': m['rival'],
                              'Cond.': '🏠' if m['condicion']=='Local' else '✈️',
                              'Marcador': m['marcador'],
-                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D'),
-                             'Goleadores': m['goleadores'][:35] if m['goleadores'] != '—' else '—'}
+                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D')}
                             for m in lst]
                 def _stats(lst):
                     s = compute_stats(lst)
@@ -764,11 +788,7 @@ Maximo 350 palabras. Se directo y usa los datos.'''
                     c2.metric('Prom. GF', s['promedio_gf'])
                     c3.metric('Prom. GC', s['promedio_gc'])
                     c4.metric('Total/ptdo', s['promedio_total'])
-                t1, t2, t3 = st.tabs([
-                    f'📋 Últimos {len(todos)}',
-                    f'🏠 Local ({len(locales)})',
-                    f'✈️ Visitante ({len(visitas)})'
-                ])
+                t1,t2,t3 = st.tabs([f'📋 Últimos {len(todos)}', f'🏠 Local ({len(locales)})', f'✈️ Visitante ({len(visitas)})'])
                 with t1:
                     _stats(todos)
                     if todos: st.dataframe(_pd2.DataFrame(_rows(todos)), use_container_width=True, hide_index=True, height=300)
