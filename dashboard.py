@@ -332,12 +332,12 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         (f"🏠 {home} gana",        mk["1x2"]["local"]),
         ("🤝 Empate",               mk["1x2"]["empate"]),
         (f"✈️ {away} gana",        mk["1x2"]["visitante"]),
-        ("⚽ Over 2.5 goles",       mk["over_under"]["over_2.5"]),
-        ("⚽ Under 2.5 goles",      mk["over_under"]["under_2.5"]),
-        ("⚽ Over 1.5 goles",       mk["over_under"]["over_1.5"]),
+        ("⚽ Over 2.5 goles",       mk.get("over_under",{}).get("over_2.5","?")),
+        ("⚽ Under 2.5 goles",      mk.get("over_under",{}).get("under_2.5","?")),
+        ("⚽ Over 1.5 goles",       mk.get("over_under",{}).get("over_1.5","?")),
         ("⚽ Under 1.5 goles",      mk["over_under"]["under_1.5"]),
-        ("🎯 Ambos anotan (Sí)",    mk["btts"]["si"]),
-        ("🎯 Ambos anotan (No)",    mk["btts"]["no"]),
+        ("🎯 Ambos anotan (Sí)",    mk.get("btts",{}).get("si","?")),
+        ("🎯 Ambos anotan (No)",    mk.get("btts",{}).get("no","?")),
         (f"🔵 {home} o Empate",     mk["doble_chance"]["1X"]),
         (f"🔴 {away} o Empate",     mk["doble_chance"]["X2"]),
         (f"⚡ {home} o {away}",     mk["doble_chance"]["12"]),
@@ -363,8 +363,8 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     with c1: st.markdown(f'<div class="metric-card"><div class="metric-lbl">P({home})</div><div class="metric-val">{ph}%</div></div>', unsafe_allow_html=True)
     with c2: st.markdown(f'<div class="metric-card"><div class="metric-lbl">P(Empate)</div><div class="metric-val">{pd_}%</div></div>', unsafe_allow_html=True)
     with c3: st.markdown(f'<div class="metric-card"><div class="metric-lbl">P({away})</div><div class="metric-val">{pa}%</div></div>', unsafe_allow_html=True)
-    with c4: st.markdown(f'<div class="metric-card"><div class="metric-lbl">Over 2.5</div><div class="metric-val">{mk["over_under"]["over_2.5"]}%</div></div>', unsafe_allow_html=True)
-    with c5: st.markdown(f'<div class="metric-card"><div class="metric-lbl">BTTS sí</div><div class="metric-val">{mk["btts"]["si"]}%</div></div>', unsafe_allow_html=True)
+    with c4: st.markdown(f'<div class="metric-card"><div class="metric-lbl">Over 2.5</div><div class="metric-val">{mk.get("over_under",{}).get("over_2.5","?")}%</div></div>', unsafe_allow_html=True)
+    with c5: st.markdown(f'<div class="metric-card"><div class="metric-lbl">BTTS sí</div><div class="metric-val">{mk.get("btts",{}).get("si","?")}%</div></div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col_l, col_m, col_r = st.columns([1.2,1.2,1.6])
@@ -455,8 +455,8 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         datos = {
             f"Over 2.5": ou["over_2.5"],
             f"Under 2.5": ou["under_2.5"],
-            f"BTTS Sí": mk["btts"]["si"],
-            f"BTTS No": mk["btts"]["no"],
+            f"BTTS Sí": mk.get("btts",{}).get("si","?"),
+            f"BTTS No": mk.get("btts",{}).get("no","?"),
             f"DC 1X": dc["1X"], f"DC X2": dc["X2"],
             f"{home} CS": cs["local_cs"], f"{away} CS": cs["visita_cs"],
         }
@@ -574,16 +574,16 @@ Analiza este partido del Mundial 2026 y da recomendaciones concretas de valor.
 PARTIDO: {home} vs {away}
 
 PROBABILIDADES DEL MODELO POISSON:
-- {home} gana: {mk["1x2"]["local"]}%
+- {home} gana: {mk.get("1x2",{}).get("local","?")}%
 - Empate: {mk["1x2"]["empate"]}%
 - {away} gana: {mk["1x2"]["visitante"]}%
-- Over 2.5: {mk["over_under"]["over_2.5"]}%
-- Under 2.5: {mk["over_under"]["under_2.5"]}%
-- Over 1.5: {mk["over_under"]["over_1.5"]}%
-- BTTS Sí: {mk["btts"]["si"]}%
-- BTTS No: {mk["btts"]["no"]}%
-- {home} CS: {mk["clean_sheet"]["local"]}%
-- {away} CS: {mk["clean_sheet"]["visitante"]}%
+- Over 2.5: {mk.get("over_under",{}).get("over_2.5","?")}%
+- Under 2.5: {mk.get("over_under",{}).get("under_2.5","?")}%
+- Over 1.5: {mk.get("over_under",{}).get("over_1.5","?")}%
+- BTTS Sí: {mk.get("btts",{}).get("si","?")}%
+- BTTS No: {mk.get("btts",{}).get("no","?")}%
+- {home} CS: {mk.get("clean_sheet",{}).get("local","?")}%
+- {away} CS: {mk.get("clean_sheet",{}).get("visitante","?")}%
 - Goles esperados: {round(lh+la,2)} ({home}: {lh}, {away}: {la})
 
 TENDENCIAS {home} (últimos {home_tr.get("partidos",0)} partidos):
