@@ -1026,6 +1026,7 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             notas_n   = st.text_input("Notas", placeholder="opcional")
 
         # Kelly en tiempo real
+        ev_n = 0.0
         if prob_n > 0 and odd_n > 1.01:
             k = kelly(prob_n, odd_n, bankroll_ini)
             ev_n = k["ev_esperado_$"]
@@ -1038,7 +1039,7 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
         if st.button("Registrar apuesta", type="primary"):
             if partido_n and mercado_n:
                 from bankroll import reporte_pnl as rp
-                ev_est = ev_n if prob_n > 0 else None
+                ev_est = ev_n if (prob_n > 0 and 'ev_n' in dir()) else None
                 nuevo_id = registrar_apuesta(partido_n, mercado_n, odd_n, stake_n,
                                               prob_n or None, ev_est, notas_n)
                 st.success(f"Apuesta #{nuevo_id} registrada")
