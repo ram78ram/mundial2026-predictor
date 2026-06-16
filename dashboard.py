@@ -1229,7 +1229,10 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
     col_reset, _ = st.columns([1,4])
     with col_reset:
         if st.button('🗑️ Resetear bankroll', type='secondary'):
-            con = sqlite3.connect(DB_PATH)
+            import sqlite3 as _sq
+            from pathlib import Path as _P
+            _db = _P(__file__).parent / 'data' / 'bankroll.db'
+            con = _sq.connect(_db)
             con.execute('DELETE FROM apuestas')
             con.commit()
             con.close()
