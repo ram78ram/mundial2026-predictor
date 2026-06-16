@@ -93,6 +93,12 @@ hr{border-color:var(--border)!important;opacity:.6!important;}
 # Cargar API key desde Streamlit secrets o variable de entorno
 import os
 ODDS_API_KEY = None
+ANTHROPIC_API_KEY = None
+try:
+    ANTHROPIC_API_KEY = st.secrets['ANTHROPIC_API_KEY']
+except:
+    import os
+    ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
 try:
     ODDS_API_KEY = st.secrets["ODDS_API_KEY"]
 except:
