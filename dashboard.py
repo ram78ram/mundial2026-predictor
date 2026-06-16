@@ -549,136 +549,106 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     except Exception as e:
         st.caption(f"Sistema de bajas: {e}")
 
-    # ── Análisis del Tipster (reglas)
+    # ── Análisis del Tipster (IA)
     st.markdown('---')
     st.markdown('### 🎯 Análisis del Tipster')
-    try:
-        from team_history import get_h2h, get_trends, get_team_matches
-        home_tr = get_trends(get_team_matches(home, 10))
-        away_tr = get_trends(get_team_matches(away, 10))
-        h2h_data = get_h2h(home, away)
-        hs = h2h_data['stats']
+    if 'tipster_cache' not in st.session_state:
+        st.session_state['tipster_cache'] = {}
+    cache_key = f'{home}_{away}'
+    if cache_key not in st.session_state['tipster_cache']:
+        if st.button('🤖 Generar análisis de tipster', type='primary', key='btn_tipster'):
+            with st.spinner('Analizando partido con IA...'):
+                try:
+                    import requests as _req
+                    from team_history import get_h2h, get_trends, get_team_matches
+                    home_tr = get_trends(get_team_matches(home, 10))
+                    away_tr = get_trends(get_team_matches(away, 10))
+                    h2h_data = get_h2h(home, away)
+                    hs = h2h_data['stats']
+                    p_local   = mk.get('1x2',{}).get('local', 0)
+                    p_empate  = mk.get('1x2',{}).get('empate', 0)
+                    p_visita  = mk.get('1x2',{}).get('visitante', 0)
+                    p_over25  = mk.get('over_under',{}).get('over_2.5', 0)
+                    p_under25 = mk.get('over_under',{}).get('under_2.5', 0)
+                    p_over15  = mk.get('over_under',{}).get('over_1.5', 0)
+                    p_btts_si = mk.get('btts',{}).get('si', 0)
+                    p_btts_no = mk.get('btts',{}).get('no', 0)
+                    p_cs_h    = mk.get('clean_sheet',{}).get('local', 0)
+                    p_cs_a    = mk.get('clean_sheet',{}).get('visitante', 0)
+                    prompt = f'''Eres un tipster profesional experto en apuestas deportivas. Analiza este partido del Mundial 2026 y da recomendaciones concretas de valor. Responde en español.
 
-        picks = []
-        avisos = []
+PARTIDO: {home} vs {away}
 
-        # ── Reglas de valor
-        p_local    = mk.get('1x2',{}).get('local', 0)
-        p_empate   = mk.get('1x2',{}).get('empate', 0)
-        p_visita   = mk.get('1x2',{}).get('visitante', 0)
-        p_over25   = mk.get('over_under',{}).get('over_2.5', 0)
-        p_under25  = mk.get('over_under',{}).get('under_2.5', 0)
-        p_over15   = mk.get('over_under',{}).get('over_1.5', 0)
-        p_btts_si  = mk.get('btts',{}).get('si', 0)
-        p_btts_no  = mk.get('btts',{}).get('no', 0)
-        p_cs_h     = mk.get('clean_sheet',{}).get('local', 0)
-        p_cs_a     = mk.get('clean_sheet',{}).get('visitante', 0)
-        total_goles = round(lh + la, 2)
+PROBABILIDADES DEL MODELO POISSON:
+- {home} gana: {p_local}% (momio justo: {round(100/p_local,2) if p_local else 0})
+- Empate: {p_empate}% (momio justo: {round(100/p_empate,2) if p_empate else 0})
+- {away} gana: {p_visita}% (momio justo: {round(100/p_visita,2) if p_visita else 0})
+- Over 2.5: {p_over25}% | Under 2.5: {p_under25}%
+- Over 1.5: {p_over15}%
+- BTTS Si: {p_btts_si}% | BTTS No: {p_btts_no}%
+- CS {home}: {p_cs_h}% | CS {away}: {p_cs_a}%
+- Goles esperados: {round(lh+la,2)} ({home}: {lh:.2f}, {away}: {la:.2f})
 
-        def min_odd(p): return round(100/p, 2) if p > 0 else 0
-        def fuerza(p, tendencia_pct):
-            score = 0
-            if p >= 65: score += 2
-            elif p >= 55: score += 1
-            if tendencia_pct >= 65: score += 2
-            elif tendencia_pct >= 50: score += 1
-            return min(score, 5)
+TENDENCIAS {home} (ultimos {home_tr.get('partidos',0)} partidos):
+- Victorias: {home_tr.get('win_%',0)}% | Over 2.5: {home_tr.get('over_2.5_%',0)}% | BTTS: {home_tr.get('btts_%',0)}%
+- Clean Sheet: {home_tr.get('cs_%',0)}% | Siempre marca: {home_tr.get('scored_%',0)}%
+- Racha actual: {home_tr.get('racha_n',0)} {home_tr.get('racha_tipo','?')} | Sin perder: {home_tr.get('sin_perder',0)}
+- Prom GF: {home_tr.get('avg_gf',0)} | Prom GC: {home_tr.get('avg_gc',0)}
 
-        # LOCAL FUERTE
-        if p_local >= 60:
-            f = fuerza(p_local, home_tr.get('win_%',0))
-            picks.append({'mercado': f'{home} gana', 'prob': p_local,
-                'min_odd': min_odd(p_local), 'stake': max(1,f),
-                'razon': f'Modelo: {p_local}% | Forma: {home_tr.get("win_%",0)}% victorias | Goles esperados: {lh:.2f}'})
+TENDENCIAS {away} (ultimos {away_tr.get('partidos',0)} partidos):
+- Victorias: {away_tr.get('win_%',0)}% | Over 2.5: {away_tr.get('over_2.5_%',0)}% | BTTS: {away_tr.get('btts_%',0)}%
+- Clean Sheet: {away_tr.get('cs_%',0)}% | Siempre marca: {away_tr.get('scored_%',0)}%
+- Racha actual: {away_tr.get('racha_n',0)} {away_tr.get('racha_tipo','?')} | Sin perder: {away_tr.get('sin_perder',0)}
+- Prom GF: {away_tr.get('avg_gf',0)} | Prom GC: {away_tr.get('avg_gc',0)}
 
-        # UNDER 2.5 — partido cerrado
-        if p_under25 >= 58:
-            tend_under = 100 - home_tr.get('over_2.5_%',50)
-            h2h_under  = 100 - hs.get('over_2.5_%',50)
-            f = fuerza(p_under25, (tend_under + h2h_under) / 2)
-            picks.append({'mercado': 'Under 2.5 goles', 'prob': p_under25,
-                'min_odd': min_odd(p_under25), 'stake': max(1,f),
-                'razon': f'Modelo: {p_under25}% | H2H Under: {h2h_under:.0f}% | Total esperado: {total_goles} goles'})
+H2H: {hs.get('total',0)} partidos | {home}: {hs.get(home+"_V",0)}V | Empates: {hs.get('empates',0)} | {away}: {hs.get(away+"_V",0)}V
+Over 2.5 H2H: {hs.get('over_2.5_%',0)}% | BTTS H2H: {hs.get('btts_%',0)}% | Dominante: {hs.get('dominante','sin datos')}
 
-        # OVER 2.5 — partido abierto
-        if p_over25 >= 55:
-            tend_over = home_tr.get('over_2.5_%',0)
-            h2h_over  = hs.get('over_2.5_%',0)
-            f = fuerza(p_over25, (tend_over + h2h_over) / 2)
-            picks.append({'mercado': 'Over 2.5 goles', 'prob': p_over25,
-                'min_odd': min_odd(p_over25), 'stake': max(1,f),
-                'razon': f'Modelo: {p_over25}% | Tendencia Over: {tend_over}% | H2H Over: {h2h_over}%'})
-
-        # BTTS NO
-        if p_btts_no >= 58:
-            f = fuerza(p_btts_no, 100 - home_tr.get('btts_%',50))
-            picks.append({'mercado': 'Ambos NO anotan', 'prob': p_btts_no,
-                'min_odd': min_odd(p_btts_no), 'stake': max(1,f),
-                'razon': f'Modelo: {p_btts_no}% | CS {home}: {p_cs_h}% | CS {away}: {p_cs_a}%'})
-
-        # BTTS SI
-        if p_btts_si >= 55:
-            f = fuerza(p_btts_si, home_tr.get('btts_%',0))
-            picks.append({'mercado': 'Ambos anotan (Sí)', 'prob': p_btts_si,
-                'min_odd': min_odd(p_btts_si), 'stake': max(1,f),
-                'razon': f'Modelo: {p_btts_si}% | BTTS {home}: {home_tr.get("btts_%",0)}% | BTTS {away}: {away_tr.get("btts_%",0)}%'})
-
-        # OVER 1.5
-        if p_over15 >= 75 and not any(p['mercado']=='Over 2.5 goles' for p in picks):
-            picks.append({'mercado': 'Over 1.5 goles', 'prob': p_over15,
-                'min_odd': min_odd(p_over15), 'stake': 1,
-                'razon': f'Modelo: {p_over15}% — alta probabilidad de al menos 2 goles'})
-
-        # Avisos
-        if home_tr.get('racha_tipo') == 'D' and home_tr.get('racha_n',0) >= 2:
-            avisos.append(f'⚠️ {home} viene de {home_tr["racha_n"]} derrotas seguidas')
-        if away_tr.get('racha_tipo') == 'V' and away_tr.get('racha_n',0) >= 3:
-            avisos.append(f'⚠️ {away} viene de {away_tr["racha_n"]} victorias — puede sorprender')
-        if hs.get('dominante') == away and hs.get('total',0) >= 2:
-            avisos.append(f'⚠️ {away} es dominante en el H2H ({hs.get(away+"_V",0)}V vs {hs.get(home+"_V",0)}V)')
-
-        # Ordenar por fuerza
-        picks = sorted(picks, key=lambda x: (x['stake'], x['prob']), reverse=True)
-
-        if picks:
-            # Pick principal
-            best = picks[0]
+Responde con este formato:
+## CONTEXTO
+[2-3 oraciones sobre el partido]
+## PICK PRINCIPAL
+[mercado, momio minimo, stake S1-S5, razon en 2 lineas]
+## OTROS MERCADOS CON VALOR
+[lista de 1-3 mercados adicionales]
+## MERCADOS A EVITAR
+[1-2 mercados que parecen pero no tienen valor]
+## SEÑALES DE ALARMA
+[factores de riesgo]
+Maximo 350 palabras. Se directo y usa los datos.'''
+                    resp = _req.post(
+                        'https://api.anthropic.com/v1/messages',
+                        headers={'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01'},
+                        json={'model': 'claude-haiku-4-5-20251001', 'max_tokens': 1000, 'messages': [{'role': 'user', 'content': prompt}]},
+                        timeout=30
+                    )
+                    if resp.status_code == 200:
+                        analysis = resp.json()['content'][0]['text']
+                        st.session_state['tipster_cache'][cache_key] = analysis
+                        st.rerun()
+                    else:
+                        st.error(f'Error API: {resp.status_code} — {resp.text[:200]}')
+                except Exception as e:
+                    st.error(f'Error: {e}')
+    else:
+        analysis = st.session_state['tipster_cache'][cache_key]
+        if '## PICK PRINCIPAL' in analysis:
+            parts = analysis.split('## PICK PRINCIPAL')
+            st.markdown(parts[0])
+            pick_txt = parts[1].split('##')[0].strip()
+            rest = '##'.join(parts[1].split('##')[1:])
             st.markdown(
-                f'<div style="background:rgba(0,229,255,0.12);border:2px solid var(--cyan);'
-                f'border-radius:10px;padding:16px 20px;margin-bottom:16px">'
-                f'<div style="color:var(--cyan);font-family:Barlow Condensed;font-weight:900;font-size:1rem;margin-bottom:6px">'
-                f'⭐ PICK PRINCIPAL — S{best["stake"]}</div>'
-                f'<div style="color:var(--text);font-size:1.1rem;font-weight:700;margin-bottom:4px">{best["mercado"]}'
-                f' @ mínimo {best["min_odd"]}</div>'
-                f'<div style="color:var(--text-dim);font-size:13px">{best["razon"]}</div>'
-                f'</div>',
+                f'<div style="background:rgba(0,229,255,0.12);border:2px solid var(--cyan);border-radius:10px;padding:16px 20px;margin:12px 0">'
+                f'<div style="color:var(--cyan);font-family:Barlow Condensed;font-weight:900;font-size:1rem;margin-bottom:8px">⭐ PICK PRINCIPAL</div>'
+                f'<div style="color:var(--text);font-size:14px;line-height:1.6">{pick_txt}</div></div>',
                 unsafe_allow_html=True
             )
-
-            # Otros picks
-            if len(picks) > 1:
-                st.markdown('**Otros mercados con valor:**')
-                for pk in picks[1:]:
-                    st.markdown(
-                        f'<div style="background:var(--navy3);border:1px solid var(--border);'
-                        f'border-radius:8px;padding:10px 14px;margin-bottom:6px">'
-                        f'<span style="color:var(--cyan);font-weight:700">S{pk["stake"]} — {pk["mercado"]}'
-                        f' @ +{pk["min_odd"]}</span>'
-                        f'<span style="color:var(--text-dim);font-size:12px;margin-left:10px">{pk["razon"]}</span>'
-                        f'</div>',
-                        unsafe_allow_html=True
-                    )
+            st.markdown('## ' + rest)
         else:
-            st.info('Sin picks claros para este partido según el modelo — esperar mejor oportunidad.')
-
-        # Avisos
-        if avisos:
-            st.markdown('**Señales de alarma:**')
-            for av in avisos:
-                st.warning(av)
-
-    except Exception as e:
-        st.caption(f'Tipster no disponible: {e}')
+            st.markdown(analysis)
+        if st.button('🔄 Regenerar', key='btn_regen'):
+            del st.session_state['tipster_cache'][cache_key]
+            st.rerun()
 
     # ── Tendencias y sugerencias (estilo Betmines)
     st.markdown("---")
