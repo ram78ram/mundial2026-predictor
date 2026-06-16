@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from datetime import date, datetime
-import pytz
 from predictor import Predictor, DEMO_STATS
 from markets import all_markets, ev_market
 from stats_engine import compute_lambdas
@@ -29,65 +28,18 @@ if "last_sync" not in st.session_state:
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;900&display=swap');
-:root{--cyan:#00E5FF;--cyan-dim:#00B8CC;--cyan-glow:rgba(0,229,255,0.12);--navy:#0D1B2A;--navy2:#112236;--navy3:#162C44;--navy4:#1D3A57;--border:rgba(0,229,255,0.18);--text:#E8F4FD;--text-dim:#7FA8C9;--green:#00E676;--red:#FF5252;--gold:#FFD740;}
-.stApp{background:var(--navy)!important;color:var(--text)!important;font-family:'Inter',sans-serif!important;}
-[data-testid='stSidebar']{background:var(--navy2)!important;border-right:1px solid var(--border)!important;}
-[data-testid='stSidebar'] *{color:var(--text)!important;}
-[data-testid='stSidebar'] label{color:var(--text-dim)!important;font-size:.75rem!important;text-transform:uppercase!important;letter-spacing:.08em!important;font-weight:600!important;}
-.stButton>button{background:linear-gradient(135deg,var(--cyan),var(--cyan-dim))!important;color:#000!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;font-size:.9rem!important;letter-spacing:.08em!important;text-transform:uppercase!important;border:none!important;border-radius:6px!important;transition:all .2s!important;box-shadow:0 0 16px var(--cyan-glow)!important;}
-.stButton>button:hover{transform:translateY(-2px)!important;box-shadow:0 0 28px rgba(0,229,255,.3)!important;}
-.stSelectbox>div>div,.stNumberInput>div>div>input,.stTextInput>div>div>input{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:6px!important;color:var(--text)!important;}
-.metric-card{background:linear-gradient(135deg,var(--navy3),var(--navy4));border:1px solid var(--border);border-radius:10px;padding:18px 14px;text-align:center;transition:all .25s ease;position:relative;overflow:hidden;}
-.metric-card::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);}
-.metric-card:hover{border-color:var(--cyan);box-shadow:0 4px 24px var(--cyan-glow);transform:translateY(-3px);}
-.metric-val{font-family:'Barlow Condensed',sans-serif;font-size:2.1rem;font-weight:900;color:var(--cyan);margin:6px 0 3px;line-height:1;}
-.metric-lbl{font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
-.tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
-.tag-pos{background:rgba(0,230,118,.12);color:var(--green);border:1px solid rgba(0,230,118,.25);}
-.tag-neg{background:rgba(255,82,82,.12);color:var(--red);border:1px solid rgba(255,82,82,.25);}
-.tag-hoy{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid var(--border);}
-.tag-jugado{background:rgba(255,255,255,.06);color:var(--text-dim);border:1px solid rgba(255,255,255,.1);}
-.tag-proximo{background:rgba(255,215,64,.1);color:var(--gold);border:1px solid rgba(255,215,64,.2);}
-.partido-card{border:1px solid rgba(0,229,255,.1);border-radius:10px;padding:14px 18px;margin-bottom:8px;background:var(--navy3);transition:all .2s;}
-.partido-card:hover{border-color:var(--cyan);background:var(--navy4);box-shadow:0 4px 20px var(--cyan-glow);}
-.match-score{font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:900;color:var(--cyan);letter-spacing:.05em;}
-h1,h2,h3{font-family:'Barlow Condensed',sans-serif!important;font-weight:900!important;color:var(--text)!important;letter-spacing:-.01em!important;}
-h1{font-size:2.5rem!important;}
-h2{font-size:1.9rem!important;}
-h3{font-size:1.4rem!important;color:var(--cyan)!important;}
-p,[data-testid='stMarkdownContainer'] p{color:var(--text)!important;line-height:1.6!important;}
-small,caption,[data-testid='stCaptionContainer']{color:var(--text-dim)!important;}
-[data-testid='stDataFrame']{border:1px solid var(--border)!important;border-radius:10px!important;overflow:hidden!important;}
-[data-testid='stDataFrame'] table{background:var(--navy3)!important;}
-[data-testid='stDataFrame'] th{background:var(--navy4)!important;color:var(--cyan)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;text-transform:uppercase!important;font-size:.76rem!important;letter-spacing:.08em!important;border-bottom:1px solid var(--border)!important;padding:10px 12px!important;}
-[data-testid='stDataFrame'] td{color:var(--text)!important;border-bottom:1px solid rgba(0,229,255,.06)!important;padding:9px 12px!important;}
-[data-testid='stDataFrame'] tr:hover td{background:var(--cyan-glow)!important;}
-.stTabs [data-baseweb='tab-list']{background:var(--navy3)!important;border-bottom:2px solid var(--border)!important;border-radius:8px 8px 0 0!important;gap:4px!important;padding:0 8px!important;}
-.stTabs [data-baseweb='tab']{background:transparent!important;color:var(--text-dim)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:700!important;font-size:.85rem!important;text-transform:uppercase!important;letter-spacing:.06em!important;border:none!important;border-bottom:2px solid transparent!important;margin-bottom:-2px!important;transition:all .2s!important;padding:10px 16px!important;border-radius:6px 6px 0 0!important;}
-.stTabs [data-baseweb='tab']:hover{color:var(--text)!important;background:rgba(0,229,255,.06)!important;}
-.stTabs [aria-selected='true']{color:var(--cyan)!important;border-bottom:2px solid var(--cyan)!important;background:var(--cyan-glow)!important;}
-[data-testid='stRadio'] label{color:var(--text-dim)!important;font-size:.8rem!important;font-weight:600!important;transition:color .15s!important;}
-[data-testid='stRadio'] label:hover{color:var(--cyan)!important;}
-[data-testid='stMetric']{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:10px!important;padding:14px!important;}
-[data-testid='stMetricLabel']{color:var(--text-dim)!important;font-size:.72rem!important;text-transform:uppercase!important;letter-spacing:.08em!important;font-weight:600!important;}
-[data-testid='stMetricValue']{color:var(--cyan)!important;font-family:'Barlow Condensed',sans-serif!important;font-weight:900!important;font-size:1.8rem!important;}
-[data-testid='stMetricDelta']{font-size:.8rem!important;font-weight:600!important;}
-[data-testid='stExpander']{background:var(--navy3)!important;border:1px solid var(--border)!important;border-radius:10px!important;}
-[data-testid='stExpander'] summary{color:var(--text)!important;font-weight:600!important;}
-.stSuccess{background:rgba(0,230,118,.08)!important;border-left:3px solid var(--green)!important;border-radius:6px!important;color:var(--text)!important;}
-.stWarning{background:rgba(255,215,64,.08)!important;border-left:3px solid var(--gold)!important;border-radius:6px!important;}
-.stInfo{background:rgba(0,229,255,.08)!important;border-left:3px solid var(--cyan)!important;border-radius:6px!important;}
-.stError{background:rgba(255,82,82,.08)!important;border-left:3px solid var(--red)!important;border-radius:6px!important;}
-[data-testid='stAlert']{color:var(--text)!important;}
-hr{border-color:var(--border)!important;opacity:.6!important;}
-::-webkit-scrollbar{width:5px;height:5px;}
-::-webkit-scrollbar-track{background:var(--navy2);}
-::-webkit-scrollbar-thumb{background:var(--cyan-dim);border-radius:3px;}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.main .block-container>div>div{animation:fadeInUp .28s ease both;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--cyan-glow)}50%{box-shadow:0 0 0 6px transparent}}
-.metric-card:hover::after{animation:pulse 1.5s infinite;}
+.metric-card{background:var(--secondary-background-color,#f0f2f6);border-radius:10px;padding:14px 16px;text-align:center}
+.metric-val{font-size:1.8rem;font-weight:700;margin:4px 0}
+.metric-lbl{font-size:.75rem;color:#888;text-transform:uppercase;letter-spacing:.05em}
+.tag{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.75rem;font-weight:600}
+.tag-pos{background:#d1e7dd;color:#0f5132}
+.tag-neg{background:#f8d7da;color:#842029}
+.tag-hoy{background:#fff3cd;color:#664d03}
+.tag-jugado{background:#e2e3e5;color:#41464b}
+.tag-proximo{background:#cfe2ff;color:#084298}
+.partido-card{border:1px solid #dee2e6;border-radius:10px;padding:12px 16px;margin-bottom:8px;cursor:pointer}
+.partido-card:hover{background:#f8f9fa}
+.match-score{font-size:1.1rem;font-weight:700;color:#212529}
 </style>
 """, unsafe_allow_html=True)
 
@@ -111,7 +63,7 @@ all_matches = get_fixture_for_dashboard()
 # ─────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## ⚽ Mundial 2026")
-    st.caption(f"Hoy: {datetime.now(pytz.timezone('America/Mexico_City')).strftime('%d %b %Y')}")
+    st.caption(f"Hoy: {date.today().strftime('%d %b %Y')}")
 
     # ── Estado de sincronización
     if st.session_state.get("sync_error"):
@@ -233,7 +185,7 @@ if vista == "Fixture" and not st.session_state.get("vista_override"):
     for fecha, grupo_iter in groupby(mostrar_sorted, key=lambda x: x["fecha"]):
         partidos_fecha = list(grupo_iter)
         fd = date.fromisoformat(fecha)
-        if fd.isoformat() == datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d'):
+        if fd == date.today():
             st.markdown(f"### Hoy — {fd.strftime('%d %b %Y')}")
         else:
             st.markdown(f"### {fd.strftime('%A %d %b %Y').capitalize()}")
@@ -345,13 +297,13 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     ]
 
     rows_prob = [{"Mercado": n, "P. Modelo": f"{p}%",
-                  "Mínimo para valor": f"{_fair(p)}",
+                  "Momio justo": f"{_fair(p)}",
                   "¿Cuándo apostar?": f"Si Playdoit da MÁS de {_fair(p)} → 🟢 Valor"}
                  for n, p in mercados_prob]
 
     st.markdown("---")
     st.markdown("#### Probabilidades del modelo")
-    st.caption("**Mínimo para valor** = el mínimo que debe dar Playdoit para que haya valor. Si el momio real es **mayor** → hay EV positivo.")
+    st.caption("**Momio justo** = el mínimo que debe dar Playdoit para que haya valor. Si el momio real es **mayor** → hay EV positivo.")
     st.dataframe(
         _pd.DataFrame(rows_prob).style.map(_color_prob, subset=["P. Modelo"]),
         use_container_width=True, hide_index=True,
@@ -472,6 +424,78 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
                              paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_mk, use_container_width=True)
 
+    # ── Sistema de bajas
+    st.markdown("---")
+    st.markdown("### 🏥 Bajas y disponibilidad")
+    st.caption("Las bajas de titulares ajustan automáticamente las probabilidades del modelo.")
+
+    try:
+        from injuries import (registrar_baja, eliminar_baja, get_bajas,
+                              calcular_ajuste, TIPO_LABELS, POSICION_EMOJIS)
+
+        fecha_partido = p.get("fecha", "") if "partido_sel" in st.session_state else datetime.now().strftime("%Y-%m-%d")
+        bajas_actuales = get_bajas(home, away, fecha_partido)
+
+        col_b1, col_b2 = st.columns(2)
+
+        def render_bajas_equipo(equipo, col):
+            with col:
+                st.markdown(f"**{equipo}**")
+                bajas_eq = [b for b in bajas_actuales if b["equipo"] == equipo]
+                if bajas_eq:
+                    for b in bajas_eq:
+                        emoji_pos = POSICION_EMOJIS.get(b["posicion"], "👤")
+                        tipo_lbl  = TIPO_LABELS.get(b["tipo"], b["tipo"])
+                        col_j, col_x = st.columns([4,1])
+                        with col_j:
+                            st.markdown(
+                                f'{emoji_pos} **{b["jugador"]}** — {b["posicion"]} — {tipo_lbl}'
+                                + (f' *(suplente)*' if not b["es_titular"] else '')
+                            )
+                        with col_x:
+                            if st.button("✕", key=f"del_baja_{b['id']}", help="Eliminar"):
+                                eliminar_baja(b["id"])
+                                st.rerun()
+                else:
+                    st.caption("Sin bajas registradas")
+
+                # Formulario rápido para agregar baja
+                with st.expander(f"+ Agregar baja {equipo}"):
+                    j_nombre = st.text_input("Nombre del jugador", key=f"jn_{equipo}")
+                    j_pos    = st.selectbox("Posición", ["Delantero","Mediocampista","Defensa","Portero"], key=f"jp_{equipo}")
+                    j_tipo   = st.selectbox("Estado", ["confirmed","doubt","suspended"],
+                                            format_func=lambda x: TIPO_LABELS[x], key=f"jt_{equipo}")
+                    j_titular = st.checkbox("Es titular", value=True, key=f"jti_{equipo}")
+                    if st.button(f"Registrar baja", key=f"jbtn_{equipo}", type="primary"):
+                        if j_nombre:
+                            registrar_baja(home, away, fecha_partido, equipo,
+                                           j_nombre, j_pos, j_titular, j_tipo)
+                            st.rerun()
+
+        render_bajas_equipo(home, col_b1)
+        render_bajas_equipo(away, col_b2)
+
+        # Mostrar impacto en el modelo
+        ajuste = calcular_ajuste(home, away, fecha_partido)
+        if ajuste["resumen"]:
+            st.markdown("#### Impacto en el modelo")
+            for r in ajuste["resumen"]:
+                imp_a = r["impacto_ataque"]
+                imp_d = r["impacto_defensa"]
+                partes = []
+                if imp_a != 0: partes.append(f"Ataque {imp_a*100:+.0f}%")
+                if imp_d != 0: partes.append(f"Defensa {imp_d*100:+.0f}%")
+                color = "#FF5252" if (imp_a + imp_d) < -0.1 else "#FFD740"
+                st.markdown(
+                    f'<div style="background:rgba(255,82,82,0.08);border-left:3px solid {color};'
+                    f'padding:6px 12px;border-radius:4px;margin-bottom:4px;font-size:13px">'
+                    f'🏥 <b>{r["jugador"]}</b> ({r["equipo"]}) — {" · ".join(partes)}</div>',
+                    unsafe_allow_html=True
+                )
+
+    except Exception as e:
+        st.caption(f"Sistema de bajas: {e}")
+
     # ── Tendencias y sugerencias (estilo Betmines)
     st.markdown("---")
     st.markdown("### Tendencias y sugerencias")
@@ -485,9 +509,7 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         av = rep_full["away_visit_trends"]
 
         # ── Sugerencias del partido
-        home_sugg = [dict(s, desc=f"🏠 " + home + ": " + s["desc"]) for s in rep_full["home_suggestions"][:3]]
-        away_sugg = [dict(s, desc=f"✈️ " + away + ": " + s["desc"]) for s in rep_full["away_suggestions"][:3]]
-        all_sugg = rep_full["match_suggestions"] + home_sugg + away_sugg
+        all_sugg = rep_full["match_suggestions"] +                    rep_full["home_suggestions"][:3] +                    rep_full["away_suggestions"][:3]
 
         if all_sugg:
             st.markdown("#### 💡 Sugerencias automáticas")
@@ -508,24 +530,48 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
         st.markdown("#### 📊 Comparativa de tendencias (últimos 10 partidos)")
         col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
 
-        import pandas as _pd3
-        mapa_r = {'V':'victorias','E':'empates','D':'derrotas'}
-        h_racha_txt = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
-        a_racha_txt = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
-        df_cmp = _pd3.DataFrame([
-            [f"{ht.get('win_%',0)}%",     'Victorias %',        f"{at.get('win_%',0)}%"],
-            [f"{ht.get('over_2.5_%',0)}%",'Over 2.5 %',         f"{at.get('over_2.5_%',0)}%"],
-            [f"{ht.get('over_1.5_%',0)}%",'Over 1.5 %',         f"{at.get('over_1.5_%',0)}%"],
-            [f"{ht.get('btts_%',0)}%",    'BTTS Sí %',          f"{at.get('btts_%',0)}%"],
-            [f"{ht.get('cs_%',0)}%",      'Clean Sheet %',      f"{at.get('cs_%',0)}%"],
-            [f"{ht.get('scored_%',0)}%",  'Siempre marca %',    f"{at.get('scored_%',0)}%"],
-            [str(ht.get('avg_gf',0)),     'Prom. GF',           str(at.get('avg_gf',0))],
-            [str(ht.get('avg_gc',0)),     'Prom. GC',           str(at.get('avg_gc',0))],
-            [str(ht.get('avg_total',0)),  'Prom. total/partido',str(at.get('avg_total',0))],
-            [h_racha_txt,                 'Racha actual',       a_racha_txt],
-            [str(ht.get('sin_perder',0)), 'Sin perder',         str(at.get('sin_perder',0))],
-        ], columns=[home, 'Estadística', away])
-        st.dataframe(df_cmp, use_container_width=True, hide_index=True)
+        def _trend_row(label, h_val, a_val, suffix="%"):
+            h_color = "#198754" if h_val >= a_val else "#dc3545"
+            a_color = "#198754" if a_val >= h_val else "#dc3545"
+            with col_t1:
+                st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+            with col_t2:
+                st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
+                           unsafe_allow_html=True)
+            with col_t3:
+                st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
+                           f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
+                           unsafe_allow_html=True)
+
+        with col_t1: st.markdown(f'<div style="text-align:right;font-weight:700;padding:4px 0">{home}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:11px">vs</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-weight:700;padding:4px 0">{away}</div>', unsafe_allow_html=True)
+
+        _trend_row("Victorias", ht.get("win_%",0), at.get("win_%",0))
+        _trend_row("Over 2.5", ht.get("over_2.5_%",0), at.get("over_2.5_%",0))
+        _trend_row("Over 1.5", ht.get("over_1.5_%",0), at.get("over_1.5_%",0))
+        _trend_row("BTTS Sí", ht.get("btts_%",0), at.get("btts_%",0))
+        _trend_row("Clean Sheet", ht.get("cs_%",0), at.get("cs_%",0))
+        _trend_row("Siempre marca", ht.get("scored_%",0), at.get("scored_%",0))
+        _trend_row("Prom. GF", ht.get("avg_gf",0), at.get("avg_gf",0), "")
+        _trend_row("Prom. GC", ht.get("avg_gc",0), at.get("avg_gc",0), "")
+        _trend_row("Prom. total", ht.get("avg_total",0), at.get("avg_total",0), "")
+
+        # Racha actual
+        mapa_r = {"V":"victorias","E":"empates","D":"derrotas"}
+        h_racha = f"{ht.get('racha_n',0)} {mapa_r.get(ht.get('racha_tipo','V'),'')}"
+        a_racha = f"{at.get('racha_n',0)} {mapa_r.get(at.get('racha_tipo','V'),'')}"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0;font-weight:600">{h_racha}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Racha actual</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0;font-weight:600">{a_racha}</div>', unsafe_allow_html=True)
+
+        h_invicto = f"{ht.get('sin_perder',0)} sin perder"
+        a_invicto = f"{at.get('sin_perder',0)} sin perder"
+        with col_t1: st.markdown(f'<div style="text-align:right;font-size:13px;padding:3px 0">{h_invicto}</div>', unsafe_allow_html=True)
+        with col_t2: st.markdown('<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">Invicto</div>', unsafe_allow_html=True)
+        with col_t3: st.markdown(f'<div style="font-size:13px;padding:3px 0">{a_invicto}</div>', unsafe_allow_html=True)
 
     except Exception as e:
         st.caption(f"Tendencias no disponibles: {e}")
@@ -540,42 +586,41 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
 
         def _render_history(equipo, col):
             with col:
-                st.markdown(f'**{equipo}**')
-                from team_history import get_team_matches, compute_stats
-                todos   = get_team_matches(equipo, 10)
-                locales = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Local'][:5]
-                visitas = [m for m in get_team_matches(equipo, 30) if m['condicion'] == 'Visitante'][:5]
-                def _rows(lst):
-                    return [{'Año': m['año'], 'Rival': m['rival'],
-                             'Cond.': '🏠' if m['condicion']=='Local' else '✈️',
-                             'Marcador': m['marcador'],
-                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D'),
-                             'Goleadores': m['goleadores'][:35] if m['goleadores'] != '—' else '—'}
-                            for m in lst]
-                def _stats(lst):
-                    s = compute_stats(lst)
-                    if not s: return
-                    c1,c2,c3,c4 = st.columns(4)
-                    c1.metric('V/E/D', f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
-                    c2.metric('Prom. GF', s['promedio_gf'])
-                    c3.metric('Prom. GC', s['promedio_gc'])
-                    c4.metric('Total/ptdo', s['promedio_total'])
-                t1, t2, t3 = st.tabs([
-                    f'📋 Últimos {len(todos)}',
-                    f'🏠 Local ({len(locales)})',
-                    f'✈️ Visitante ({len(visitas)})'
-                ])
-                with t1:
-                    _stats(todos)
-                    if todos: st.dataframe(_pd2.DataFrame(_rows(todos)), use_container_width=True, hide_index=True, height=300)
-                with t2:
-                    _stats(locales)
-                    if locales: st.dataframe(_pd2.DataFrame(_rows(locales)), use_container_width=True, hide_index=True)
-                    else: st.caption('Sin datos como local')
-                with t3:
-                    _stats(visitas)
-                    if visitas: st.dataframe(_pd2.DataFrame(_rows(visitas)), use_container_width=True, hide_index=True)
-                    else: st.caption('Sin datos como visitante')
+                st.markdown(f"**{equipo}**")
+                rep = get_full_report(equipo)
+                tab_gen, tab_loc = st.tabs([f"Últimos {len(rep['ultimos_10'])} partidos", "Como local"])
+                with tab_gen:
+                    s = rep["stats_10"]
+                    if s:
+                        m1,m2,m3,m4 = st.columns(4)
+                        m1.metric("V/E/D", f"{s['victorias']}/{s['empates']}/{s['derrotas']}")
+                        m2.metric("Prom. GF", s["promedio_gf"])
+                        m3.metric("Prom. GC", s["promedio_gc"])
+                        m4.metric("Prom. total", s["promedio_total"])
+                    if rep["ultimos_10"]:
+                        rows = [{"Año": m["año"], "Rival": m["rival"],
+                                 "Cond.": "🏠" if m["condicion"]=="Local" else "✈️",
+                                 "Marcador": m["marcador"],
+                                 "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                 "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                for m in rep["ultimos_10"]]
+                        st.dataframe(_pd2.DataFrame(rows), use_container_width=True, hide_index=True, height=300)
+                with tab_loc:
+                    sl = rep["stats_local"]
+                    if sl:
+                        m1,m2,m3 = st.columns(3)
+                        m1.metric("V/E/D local", f"{sl['victorias']}/{sl['empates']}/{sl['derrotas']}")
+                        m2.metric("Prom. GF local", sl["promedio_gf"])
+                        m3.metric("Prom. GC local", sl["promedio_gc"])
+                    if rep["local_5"]:
+                        rows_l = [{"Año": m["año"], "Rival": m["rival"],
+                                   "Marcador": m["marcador"],
+                                   "Res.": ("✅ " if m["resultado"]=="V" else "🟡 " if m["resultado"]=="E" else "❌ ")+m["resultado"],
+                                   "Goleadores": m["goleadores"][:40] if m["goleadores"]!="—" else "—"}
+                                  for m in rep["local_5"]]
+                        st.dataframe(_pd2.DataFrame(rows_l), use_container_width=True, hide_index=True)
+                    else:
+                        st.caption("Sin datos como local")
 
         _render_history(home, col_h1)
         _render_history(away, col_h2)
@@ -1027,7 +1072,6 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             notas_n   = st.text_input("Notas", placeholder="opcional")
 
         # Kelly en tiempo real
-        ev_n = 0.0
         if prob_n > 0 and odd_n > 1.01:
             k = kelly(prob_n, odd_n, bankroll_ini)
             ev_n = k["ev_esperado_$"]
@@ -1035,71 +1079,12 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             kc[0].metric("EV esperado", f"${ev_n:+.2f}")
             kc[1].metric("Kelly recomendado", f"${k['apuesta_recomendada_$']:.2f}")
             kc[2].metric("Kelly %", f"{k['kelly_fraccion_%']:.2f}%")
-            kc[3].metric('Máx 5% bankroll', f"${k['max_apuesta_$']:.2f}")
-
-        # ── Sistema de Stakes 1-5
-        st.markdown('---')
-        st.markdown('#### 🎯 Sistema de Stakes recomendado')
-        st.caption('Basado en la probabilidad del modelo y tu bankroll')
-        stake_pcts = {1: 0.01, 2: 0.03, 3: 0.07, 4: 0.15, 5: 0.25}
-        stake_labels = {
-            1: 'Muy bajo riesgo',
-            2: 'Bajo riesgo',
-            3: 'Riesgo medio',
-            4: 'Riesgo alto',
-            5: 'Máximo riesgo',
-        }
-        # Determinar stake sugerido según EV
-        ev_pct = ev_n / stake_n * 100 if stake_n > 0 and prob_n > 0 else 0
-        if ev_pct >= 20:    stake_sug = 5
-        elif ev_pct >= 12: stake_sug = 4
-        elif ev_pct >= 7:  stake_sug = 3
-        elif ev_pct >= 3:  stake_sug = 2
-        else:               stake_sug = 1
-
-        sc = st.columns(5)
-        for idx, (nivel, pct) in enumerate(stake_pcts.items()):
-            monto = round(bankroll_ini * pct, 2)
-            ganancia = round(monto * (odd_n - 1), 2)
-            es_sug = nivel == stake_sug and prob_n > 0
-            color = 'var(--cyan)' if es_sug else 'var(--text-dim)'
-            borde = 'var(--cyan)' if es_sug else 'rgba(255,255,255,0.1)'
-            bg    = 'var(--cyan-glow)' if es_sug else 'var(--navy3)'
-            sc[idx].markdown(
-                f'<div style="background:{bg};border:1px solid {borde};border-radius:8px;'
-                f'padding:12px 8px;text-align:center;transition:all .2s">'
-                f'<div style="font-size:1.4rem;font-weight:900;color:{color};font-family:Barlow Condensed">S{nivel}</div>'
-                f'<div style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin:2px 0">{stake_labels[nivel]}</div>'
-                f'<div style="font-size:1rem;font-weight:700;color:var(--text);margin-top:6px">${monto:,.0f}</div>'
-                f'<div style="font-size:.75rem;color:{color}">{int(pct*100)}% bankroll</div>'
-                f'<div style="font-size:.72rem;color:var(--green);margin-top:4px">+${ganancia:,.0f} si gana</div>'
-                f'{"<div style=\"font-size:.65rem;color:var(--cyan);margin-top:3px;font-weight:700\">⭐ SUGERIDO</div>" if es_sug else ""}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-
-        # Ganancia con el stake actual ingresado
-        st.markdown('---')
-        col_g1, col_g2, col_g3 = st.columns(3)
-        ganancia_act = round(stake_n * (odd_n - 1), 2)
-        retorno_act  = round(stake_n * odd_n, 2)
-        col_g1.metric('💰 Ganancia si acierta', f'${ganancia_act:,.2f}')
-        col_g2.metric('📦 Retorno total', f'${retorno_act:,.2f}')
-        col_g3.metric('📉 Riesgo', f'${stake_n:,.2f}')
-
-        # Cálculo de ganancia potencial en tiempo real
-        st.markdown('---')
-        col_g1, col_g2, col_g3 = st.columns(3)
-        ganancia = round(stake_n * (odd_n - 1), 2)
-        retorno  = round(stake_n * odd_n, 2)
-        col_g1.metric('💰 Ganancia si acierta', f'${ganancia:,.2f}')
-        col_g2.metric('📦 Retorno total', f'${retorno:,.2f}')
-        col_g3.metric('📉 Pierdes si falla', f'${stake_n:,.2f}')
+            kc[3].metric("Máx 5% bankroll", f"${k['max_apuesta_$']:.2f}")
 
         if st.button("Registrar apuesta", type="primary"):
             if partido_n and mercado_n:
                 from bankroll import reporte_pnl as rp
-                ev_est = ev_n if (prob_n > 0 and 'ev_n' in dir()) else None
+                ev_est = ev_n if prob_n > 0 else None
                 nuevo_id = registrar_apuesta(partido_n, mercado_n, odd_n, stake_n,
                                               prob_n or None, ev_est, notas_n)
                 st.success(f"Apuesta #{nuevo_id} registrada")
