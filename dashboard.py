@@ -543,6 +543,134 @@ def mostrar_analisis(home, away, momios, stake, resultado_real=None):
     except Exception as e:
         st.caption(f"Sistema de bajas: {e}")
 
+    # ── Análisis del Tipster (IA)
+    st.markdown("---")
+    st.markdown("### 🎯 Análisis del Tipster")
+
+    if "tipster_cache" not in st.session_state:
+        st.session_state["tipster_cache"] = {}
+
+    cache_key = f"{home}_{away}"
+
+    if cache_key not in st.session_state["tipster_cache"]:
+        if st.button("🤖 Generar análisis de tipster", type="primary", key="btn_tipster"):
+            with st.spinner("Analizando partido..."):
+                try:
+                    import requests as _req
+
+                    # Recopilar todos los datos del partido
+                    from team_history import get_h2h, get_full_report, get_trends, get_team_matches
+                    
+                    h2h_data = get_h2h(home, away)
+                    home_rep  = get_full_report(home)
+                    away_rep  = get_full_report(away)
+                    home_tr   = get_trends(get_team_matches(home, 10))
+                    away_tr   = get_trends(get_team_matches(away, 10))
+
+                    # Construir prompt con todos los datos
+                    prompt = f"""Eres un tipster profesional experto en apuestas deportivas. 
+Analiza este partido del Mundial 2026 y da recomendaciones concretas de valor.
+
+PARTIDO: {home} vs {away}
+
+PROBABILIDADES DEL MODELO POISSON:
+- {home} gana: {mk["1x2"]["local"]}%
+- Empate: {mk["1x2"]["empate"]}%
+- {away} gana: {mk["1x2"]["visitante"]}%
+- Over 2.5: {mk["over_under"]["over_2.5"]}%
+- Under 2.5: {mk["over_under"]["under_2.5"]}%
+- Over 1.5: {mk["over_under"]["over_1.5"]}%
+- BTTS Sí: {mk["btts"]["si"]}%
+- BTTS No: {mk["btts"]["no"]}%
+- {home} CS: {mk["clean_sheet"]["local"]}%
+- {away} CS: {mk["clean_sheet"]["visitante"]}%
+- Goles esperados: {round(lh+la,2)} ({home}: {lh}, {away}: {la})
+
+TENDENCIAS {home} (últimos {home_tr.get("partidos",0)} partidos):
+- Victorias: {home_tr.get("win_%",0)}% | Over 2.5: {home_tr.get("over_2.5_%",0)}% | BTTS: {home_tr.get("btts_%",0)}%
+- Clean Sheet: {home_tr.get("cs_%",0)}% | Siempre marca: {home_tr.get("scored_%",0)}%
+- Racha: {home_tr.get("racha_n",0)} {home_tr.get("racha_tipo","?")} | Sin perder: {home_tr.get("sin_perder",0)}
+- Prom. GF: {home_tr.get("avg_gf",0)} | Prom. GC: {home_tr.get("avg_gc",0)}
+
+TENDENCIAS {away} (últimos {away_tr.get("partidos",0)} partidos):
+- Victorias: {away_tr.get("win_%",0)}% | Over 2.5: {away_tr.get("over_2.5_%",0)}% | BTTS: {away_tr.get("btts_%",0)}%
+- Clean Sheet: {away_tr.get("cs_%",0)}% | Siempre marca: {away_tr.get("scored_%",0)}%
+- Racha: {away_tr.get("racha_n",0)} {away_tr.get("racha_tipo","?")} | Sin perder: {away_tr.get("sin_perder",0)}
+- Prom. GF: {away_tr.get("avg_gf",0)} | Prom. GC: {away_tr.get("avg_gc",0)}
+
+H2H HISTÓRICO: {h2h_data["stats"].get("total",0)} partidos
+- {home}: {h2h_data["stats"].get(home+"_V",0)}V | Empates: {h2h_data["stats"].get("empates",0)} | {away}: {h2h_data["stats"].get(away+"_V",0)}V
+- Over 2.5 H2H: {h2h_data["stats"].get("over_2.5_%",0)}% | BTTS H2H: {h2h_data["stats"].get("btts_%",0)}%
+- Dominante: {h2h_data["stats"].get("dominante","—")}
+
+Responde en español con este formato exacto:
+
+## CONTEXTO
+[2-3 oraciones sobre el partido, importancia, contexto]
+
+## MERCADOS CON VALOR
+[Lista de 2-4 mercados con valor, para cada uno: nombre, por qué hay valor, momio mínimo (100/probabilidad_modelo), stake recomendado S1-S5]
+
+## MERCADOS A EVITAR  
+[1-2 mercados que parecen atractivos pero no tienen valor real]
+
+## PICK PRINCIPAL
+[UN solo pick con: mercado, momio mínimo, stake, razonamiento de 2 líneas]
+
+## SEÑALES DE ALARMA
+[Factores que podrían invalidar el análisis]
+
+Sé directo, concreto y usa los datos del modelo. No más de 400 palabras total."""
+
+                    resp = _req.post(
+                        "https://api.anthropic.com/v1/messages",
+                        headers={"Content-Type": "application/json"},
+                        json={
+                            "model": "claude-sonnet-4-6",
+                            "max_tokens": 1000,
+                            "messages": [{"role": "user", "content": prompt}]
+                        },
+                        timeout=30
+                    )
+                    
+                    if resp.status_code == 200:
+                        analysis = resp.json()["content"][0]["text"]
+                        st.session_state["tipster_cache"][cache_key] = analysis
+                        st.rerun()
+                    else:
+                        st.error(f"Error API: {resp.status_code}")
+
+                except Exception as e:
+                    st.error(f"Error generando análisis: {e}")
+    else:
+        analysis = st.session_state["tipster_cache"][cache_key]
+        
+        # Extraer y destacar el pick principal
+        if "## PICK PRINCIPAL" in analysis:
+            parts = analysis.split("## PICK PRINCIPAL")
+            before_pick = parts[0]
+            pick_section = parts[1].split("##")[0].strip()
+            after_pick = "##" + parts[1].split("##", 1)[1] if "##" in parts[1] else ""
+            
+            st.markdown(before_pick)
+            st.markdown(
+                f'<div style="background:rgba(0,229,255,0.12);border:2px solid var(--cyan);'
+                f'border-radius:10px;padding:16px 20px;margin:12px 0">' 
+                f'<div style="color:var(--cyan);font-family:Barlow Condensed;font-weight:900;'
+                f'font-size:1.1rem;letter-spacing:.05em;margin-bottom:8px">⭐ PICK PRINCIPAL</div>'
+                f'<div style="color:var(--text);font-size:14px;line-height:1.6">{pick_section}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+            if after_pick:
+                st.markdown(after_pick)
+        else:
+            st.markdown(analysis)
+        
+        if st.button("🔄 Regenerar análisis", key="btn_regen_tipster"):
+            del st.session_state["tipster_cache"][cache_key]
+            st.rerun()
+
     # ── Tendencias y sugerencias (estilo Betmines)
     st.markdown("---")
     st.markdown("### Tendencias y sugerencias")
