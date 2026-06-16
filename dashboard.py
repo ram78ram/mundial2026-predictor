@@ -1036,6 +1036,15 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             kc[2].metric("Kelly %", f"{k['kelly_fraccion_%']:.2f}%")
             kc[3].metric("Máx 5% bankroll", f"${k['max_apuesta_$']:.2f}")
 
+        # Cálculo de ganancia potencial en tiempo real
+        st.markdown('---')
+        col_g1, col_g2, col_g3 = st.columns(3)
+        ganancia = round(stake_n * (odd_n - 1), 2)
+        retorno  = round(stake_n * odd_n, 2)
+        col_g1.metric('💰 Ganancia si acierta', f'${ganancia:,.2f}')
+        col_g2.metric('📦 Retorno total', f'${retorno:,.2f}')
+        col_g3.metric('📉 Pierdes si falla', f'${stake_n:,.2f}')
+
         if st.button("Registrar apuesta", type="primary"):
             if partido_n and mercado_n:
                 from bankroll import reporte_pnl as rp
