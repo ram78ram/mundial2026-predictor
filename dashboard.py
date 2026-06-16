@@ -663,9 +663,9 @@ Maximo 350 palabras. Se directo y usa los datos.'''
         av = rep_full["away_visit_trends"]
 
         # ── Sugerencias del partido
-        home_sugg = [dict(s, desc=f"🏠 {home}: " + s["desc"]) for s in rep_full["home_suggestions"][:3]]
-        away_sugg = [dict(s, desc=f"✈️ {away}: " + s["desc"]) for s in rep_full["away_suggestions"][:3]]
-        all_sugg = rep_full["match_suggestions"] + home_sugg + away_sugg
+        all_sugg = rep_full["match_suggestions"] +                    rep_full["home_suggestions"][:3] +                    rep_full["away_suggestions"][:3]
+
+        if all_sugg:
             st.markdown("#### 💡 Sugerencias automáticas")
             for s in sorted(all_sugg, key=lambda x: x["fuerza"], reverse=True)[:8]:
                 stars = "⭐" * s["fuerza"]
