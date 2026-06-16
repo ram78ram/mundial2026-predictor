@@ -666,8 +666,8 @@ Maximo 350 palabras. Se directo y usa los datos.'''
         home_sugg = [dict(s, desc="🏠 " + home + ": " + s["desc"]) for s in rep_full["home_suggestions"][:3]]
         away_sugg = [dict(s, desc="✈️ " + away + ": " + s["desc"]) for s in rep_full["away_suggestions"][:3]]
         all_sugg = rep_full["match_suggestions"] + home_sugg + away_sugg
-            st.markdown("#### 💡 Sugerencias automáticas")
-            for s in sorted(all_sugg, key=lambda x: x["fuerza"], reverse=True)[:8]:
+        st.markdown("#### 💡 Sugerencias automáticas")
+        for s in sorted(all_sugg, key=lambda x: x["fuerza"], reverse=True)[:8]:
                 stars = "⭐" * s["fuerza"]
                 color = "#d1e7dd" if s["fuerza"] == 3 else "#fff3cd" if s["fuerza"] == 2 else "#f8f9fa"
                 txt_color = "#0f5132" if s["fuerza"] == 3 else "#664d03" if s["fuerza"] == 2 else "#495057"
@@ -685,16 +685,16 @@ Maximo 350 palabras. Se directo y usa los datos.'''
         col_t1, col_t2, col_t3 = st.columns([1,0.3,1])
 
         def _trend_row(label, h_val, a_val, suffix="%"):
-            h_color = "#198754" if h_val >= a_val else "#dc3545"
-            a_color = "#198754" if a_val >= h_val else "#dc3545"
-            with col_t1:
+        h_color = "#198754" if h_val >= a_val else "#dc3545"
+        a_color = "#198754" if a_val >= h_val else "#dc3545"
+        with col_t1:
                 st.markdown(f'<div style="text-align:right;padding:3px 0;font-size:13px">'
                            f'<span style="color:{h_color};font-weight:600">{h_val}{suffix}</span></div>',
                            unsafe_allow_html=True)
-            with col_t2:
+        with col_t2:
                 st.markdown(f'<div style="text-align:center;color:#6c757d;font-size:12px;padding:3px 0">{label}</div>',
                            unsafe_allow_html=True)
-            with col_t3:
+        with col_t3:
                 st.markdown(f'<div style="text-align:left;padding:3px 0;font-size:13px">'
                            f'<span style="color:{a_color};font-weight:600">{a_val}{suffix}</span></div>',
                            unsafe_allow_html=True)
