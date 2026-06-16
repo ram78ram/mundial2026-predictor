@@ -473,10 +473,13 @@ def get_match_report(home_es: str, away_es: str) -> dict:
     }
 
 EXTRA_SOURCES = {
+    "wc_2026": "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2026/worldcup.json",
+    "wc_2022": "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2022/worldcup.json",
+    "wc_2018": "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2018/worldcup.json",
+    "wc_2014": "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2014/worldcup.json",
+    "wc_2010": "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2010/worldcup.json",
     "euro_2024": "https://raw.githubusercontent.com/openfootball/euro.json/master/2024/euro.json",
-    "wc_2022":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2022/worldcup.json",
-    "wc_2018":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2018/worldcup.json",
-    "wc_2026":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2026/worldcup.json",
+    "euro_2020": "https://raw.githubusercontent.com/openfootball/euro.json/master/2020/euro.json",
 }
 
 def _load_extra(key):
