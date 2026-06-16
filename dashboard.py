@@ -1226,6 +1226,15 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
     init_db()
 
     st.markdown("# Tracker de Bankroll")
+    col_reset, _ = st.columns([1,4])
+    with col_reset:
+        if st.button('🗑️ Resetear bankroll', type='secondary'):
+            con = sqlite3.connect(DB_PATH)
+            con.execute('DELETE FROM apuestas')
+            con.commit()
+            con.close()
+            st.success('Bankroll reseteado')
+            st.rerun()
     st.caption("Registra tus apuestas, calcula P&L real y compara con el EV esperado.")
 
     bankroll_ini = st.number_input("Bankroll inicial ($)", 100, 100000, 1000, 100)
