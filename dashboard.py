@@ -1034,7 +1034,57 @@ elif vista == "Bankroll" and not st.session_state.get("vista_override"):
             kc[0].metric("EV esperado", f"${ev_n:+.2f}")
             kc[1].metric("Kelly recomendado", f"${k['apuesta_recomendada_$']:.2f}")
             kc[2].metric("Kelly %", f"{k['kelly_fraccion_%']:.2f}%")
-            kc[3].metric("Máx 5% bankroll", f"${k['max_apuesta_$']:.2f}")
+            kc[3].metric('Máx 5% bankroll', f"${k['max_apuesta_$']:.2f}")
+
+        # ── Sistema de Stakes 1-5
+        st.markdown('---')
+        st.markdown('#### 🎯 Sistema de Stakes recomendado')
+        st.caption('Basado en la probabilidad del modelo y tu bankroll')
+        stake_pcts = {1: 0.01, 2: 0.03, 3: 0.07, 4: 0.15, 5: 0.25}
+        stake_labels = {
+            1: 'Muy bajo riesgo',
+            2: 'Bajo riesgo',
+            3: 'Riesgo medio',
+            4: 'Riesgo alto',
+            5: 'Máximo riesgo',
+        }
+        # Determinar stake sugerido según EV
+        ev_pct = ev_n / stake_n * 100 if stake_n > 0 and prob_n > 0 else 0
+        if ev_pct >= 20:    stake_sug = 5
+        elif ev_pct >= 12: stake_sug = 4
+        elif ev_pct >= 7:  stake_sug = 3
+        elif ev_pct >= 3:  stake_sug = 2
+        else:               stake_sug = 1
+
+        sc = st.columns(5)
+        for idx, (nivel, pct) in enumerate(stake_pcts.items()):
+            monto = round(bankroll_ini * pct, 2)
+            ganancia = round(monto * (odd_n - 1), 2)
+            es_sug = nivel == stake_sug and prob_n > 0
+            color = 'var(--cyan)' if es_sug else 'var(--text-dim)'
+            borde = 'var(--cyan)' if es_sug else 'rgba(255,255,255,0.1)'
+            bg    = 'var(--cyan-glow)' if es_sug else 'var(--navy3)'
+            sc[idx].markdown(
+                f'<div style="background:{bg};border:1px solid {borde};border-radius:8px;'
+                f'padding:12px 8px;text-align:center;transition:all .2s">'
+                f'<div style="font-size:1.4rem;font-weight:900;color:{color};font-family:Barlow Condensed">S{nivel}</div>'
+                f'<div style="font-size:.68rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin:2px 0">{stake_labels[nivel]}</div>'
+                f'<div style="font-size:1rem;font-weight:700;color:var(--text);margin-top:6px">${monto:,.0f}</div>'
+                f'<div style="font-size:.75rem;color:{color}">{int(pct*100)}% bankroll</div>'
+                f'<div style="font-size:.72rem;color:var(--green);margin-top:4px">+${ganancia:,.0f} si gana</div>'
+                f'{"<div style=\"font-size:.65rem;color:var(--cyan);margin-top:3px;font-weight:700\">⭐ SUGERIDO</div>" if es_sug else ""}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+
+        # Ganancia con el stake actual ingresado
+        st.markdown('---')
+        col_g1, col_g2, col_g3 = st.columns(3)
+        ganancia_act = round(stake_n * (odd_n - 1), 2)
+        retorno_act  = round(stake_n * odd_n, 2)
+        col_g1.metric('💰 Ganancia si acierta', f'${ganancia_act:,.2f}')
+        col_g2.metric('📦 Retorno total', f'${retorno_act:,.2f}')
+        col_g3.metric('📉 Riesgo', f'${stake_n:,.2f}')
 
         # Cálculo de ganancia potencial en tiempo real
         st.markdown('---')
