@@ -156,9 +156,10 @@ TEAM_MAP = {
     "Nueva Zelanda": "Nueva Zelanda",
 }
 
-TODAY = datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d')
+# TODAY se calcula dentro de get_fixture_for_dashboard()
 
 def get_fixture_for_dashboard():
+    TODAY = datetime.now(pytz.timezone('America/Mexico_City')).strftime('%Y-%m-%d')
     """
     Devuelve lista de partidos enriquecida con:
     - estado: 'jugado' | 'hoy' | 'proximo'
