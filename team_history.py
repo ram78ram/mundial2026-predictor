@@ -471,3 +471,54 @@ def get_match_report(home_es: str, away_es: str) -> dict:
         "match_suggestions":  match_suggestions,
         "avg_total_goles":    avg_total,
     }
+
+EXTRA_SOURCES = {
+    "euro_2024": "https://raw.githubusercontent.com/openfootball/euro.json/master/2024/euro.json",
+    "wc_2022":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2022/worldcup.json",
+    "wc_2018":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2018/worldcup.json",
+    "wc_2026":   "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2026/worldcup.json",
+}
+
+def _load_extra(key):
+    cache = CACHE_DIR / f"{key}_matches.json"
+    if cache.exists():
+        return json.loads(cache.read_text())
+    try:
+        r = requests.get(EXTRA_SOURCES[key], timeout=8)
+        r.raise_for_status()
+        ms = [m for m in r.json().get("matches",[]) if m.get("score",{}).get("ft")]
+        cache.write_text(json.dumps(ms, ensure_ascii=False))
+        return ms
+    except: return []
+
+def get_h2h(team1_es, team2_es, max_results=10):
+    t1_en = ES_TO_EN.get(team1_es, team1_es)
+    t2_en = ES_TO_EN.get(team2_es, team2_es)
+    h2h = []
+    for src in EXTRA_SOURCES:
+        torneo = src.replace("_"," ").upper()
+        for m in _load_extra(src):
+            mt1, mt2 = m.get("team1",""), m.get("team2","")
+            fwd = (t1_en.lower() in mt1.lower() or mt1.lower() in t1_en.lower()) and (t2_en.lower() in mt2.lower() or mt2.lower() in t2_en.lower())
+            rev = (t2_en.lower() in mt1.lower() or mt1.lower() in t2_en.lower()) and (t1_en.lower() in mt2.lower() or mt2.lower() in t1_en.lower())
+            if not (fwd or rev): continue
+            ft = m.get("score",{}).get("ft",[0,0])
+            gf,gc = (ft[0],ft[1]) if fwd else (ft[1],ft[0])
+            res = "V" if gf>gc else ("D" if gf<gc else "E")
+            ganador = team1_es if res=="V" else (team2_es if res=="D" else "Empate")
+            h2h.append({"fecha":m.get("date",""),"torneo":torneo,"marcador":f"{gf}-{gc}","gf":gf,"gc":gc,"resultado":res,"ganador":ganador,"ronda":m.get("round",m.get("group","Grupo"))})
+    h2h.sort(key=lambda x: x["fecha"], reverse=True)
+    h2h = h2h[:max_results]
+    n = len(h2h)
+    if n == 0: return {"partidos":[],"stats":{},"team1":team1_es,"team2":team2_es}
+    v1=sum(1 for m in h2h if m["resultado"]=="V")
+    e=sum(1 for m in h2h if m["resultado"]=="E")
+    d1=sum(1 for m in h2h if m["resultado"]=="D")
+    gft=sum(m["gf"] for m in h2h); gct=sum(m["gc"] for m in h2h)
+    stats={f"{team1_es}_V":v1,"empates":e,f"{team2_es}_V":d1,"total":n,
+           "avg_goles_t1":round(gft/n,2),"avg_goles_t2":round(gct/n,2),
+           "avg_total":round((gft+gct)/n,2),
+           "over_2.5_%":round(sum(1 for m in h2h if m["gf"]+m["gc"]>2.5)/n*100),
+           "btts_%":round(sum(1 for m in h2h if m["gf"]>0 and m["gc"]>0)/n*100),
+           "dominante":team1_es if v1>d1 else (team2_es if d1>v1 else "Equilibrado")}
+    return {"partidos":h2h,"stats":stats,"team1":team1_es,"team2":team2_es}
