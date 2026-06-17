@@ -110,6 +110,12 @@ try:
 except:
     API_FOOTBALL_KEY = os.getenv('API_FOOTBALL_KEY')
 
+FOOTBALL_DATA_KEY = None
+try:
+    FOOTBALL_DATA_KEY = st.secrets['FOOTBALL_DATA_KEY']
+except:
+    FOOTBALL_DATA_KEY = os.getenv('FOOTBALL_DATA_KEY')
+
 @st.cache_resource
 def get_predictor():
     return Predictor()
@@ -751,34 +757,18 @@ Maximo 350 palabras. Se directo y usa los datos.'''
         def _render_history(equipo, col):
             with col:
                 st.markdown(f'**{equipo}**')
-                try:
-                    if API_FOOTBALL_KEY:
-                        from api_football import APIFootball
-                        _api = APIFootball(API_FOOTBALL_KEY)
-                        todos   = _api.get_last_matches(equipo, 10)
-                        locales = _api.get_last_matches(equipo, 5, venue='home')
-                        visitas = _api.get_last_matches(equipo, 5, venue='away')
-                        for m in todos+locales+visitas:
-                            if 'año' not in m: m['año'] = m.get('fecha','')[:4]
-                        fuente = '📡 API-Football'
-                    else:
-                        raise Exception('sin key')
-                except:
-                    from team_history import get_team_matches
-                    todos   = get_team_matches(equipo, 10)
-                    locales = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Local'][:5]
-                    visitas = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Visitante'][:5]
-                    fuente = '📚 Mundiales históricos'
-                from team_history import compute_stats
+                from team_history import get_team_matches, compute_stats
+                todos   = get_team_matches(equipo, 10)
+                locales = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Local'][:5]
+                visitas = [m for m in get_team_matches(equipo, 30) if m['condicion']=='Visitante'][:5]
                 import pandas as _pd2
-                st.caption(fuente)
                 def _rows(lst):
                     return [{'Año': m.get('año', m.get('fecha','')[:4]),
-                             'Liga': m.get('liga', m.get('torneo','—'))[:20],
                              'Rival': m['rival'],
                              'Cond.': '🏠' if m['condicion']=='Local' else '✈️',
                              'Marcador': m['marcador'],
-                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D')}
+                             'Res.': ('✅ V' if m['resultado']=='V' else '🟡 E' if m['resultado']=='E' else '❌ D'),
+                             'Goleadores': m.get('goleadores','—')[:35] if m.get('goleadores','—')!='—' else '—'}
                             for m in lst]
                 def _stats(lst):
                     s = compute_stats(lst)
